@@ -7,8 +7,9 @@ package dao;
 import exception.RegraException;
 
 /**
- *Contrato genérico de operações de persistência (CRUD básico) para os
- * DAOs da aplicação.
+ * Contrato genérico de operações de persistência (CRUD básico) para os DAOs da
+ * aplicação.
+ *
  * @param <C> tipo da entidade manipulada por este DAO
  * @author Ushizou
  */
@@ -19,7 +20,8 @@ public interface OperacoesDAO<C> {
      *
      * @param o objeto a ser adicionado; não pode ser nulo
      * @return {@code true} se o objeto foi adicionado com sucesso
-     * @throws RegraException se {@code o} for nulo ou ocorrer falha ao adicionar
+     * @throws RegraException se {@code o} for nulo ou ocorrer falha ao
+     * adicionar
      */
     public boolean add(C o);
 
@@ -40,4 +42,16 @@ public interface OperacoesDAO<C> {
      * @throws RegraException se {@code o} for nulo
      */
     public C find(C o);
+
+    /**
+     * Atualiza um objeto existente na base de dados.
+     *
+     * @param o objeto com os novos dados a serem utilizados na atualização; não
+     * pode ser nulo
+     * @return {@code true} se o objeto existente foi encontrado e atualizado,
+     * {@code false} caso o objeto não seja encontrado
+     * @throws RegraException se {@code o} for nulo ou ocorrer alguma falha
+     * durante a atualização
+     */
+    boolean update(C o);
 }

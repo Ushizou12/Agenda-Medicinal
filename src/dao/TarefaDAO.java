@@ -12,6 +12,7 @@ import model.Tarefa;
 
 /**
  * DAO responsável por persistir (em memória) as tarefas cadastradas.
+ *
  * @author 2025001861
  */
 public class TarefaDAO implements OperacoesDAO<Tarefa> {
@@ -23,7 +24,8 @@ public class TarefaDAO implements OperacoesDAO<Tarefa> {
      *
      * @param t tarefa a ser adicionada, não pode ser nula
      * @return {@code true} se adicionada com sucesso
-     * @throws RegraException se {@code t} for nula ou ocorrer falha ao adicionar
+     * @throws RegraException se {@code t} for nula ou ocorrer falha ao
+     * adicionar
      */
     @Override
     public boolean add(Tarefa t) {
@@ -86,7 +88,7 @@ public class TarefaDAO implements OperacoesDAO<Tarefa> {
     public Collection<Tarefa> getDados() {
         return lista;
     }
-    
+
     /**
      * Busca uma tarefa pelo nome.
      *
@@ -105,13 +107,14 @@ public class TarefaDAO implements OperacoesDAO<Tarefa> {
         }
         return null;
     }
-    
+
     /**
      * Busca uma tarefa pela prioridade.
      *
      * @param prioridade valor entre 1 e 3
      * @return a primeira tarefa encontrada com essa prioridade, ou {@code null}
-     * @throws RegraException se {@code prioridade} estiver fora do intervalo 1-3
+     * @throws RegraException se {@code prioridade} estiver fora do intervalo
+     * 1-3
      */
     public Tarefa acharPorPrioridade(int prioridade) {
         if (prioridade < 1 || prioridade > 3) {
@@ -124,7 +127,7 @@ public class TarefaDAO implements OperacoesDAO<Tarefa> {
         }
         return null;
     }
-    
+
     /**
      * Busca uma tarefa por data limite exata.
      *
@@ -143,4 +146,61 @@ public class TarefaDAO implements OperacoesDAO<Tarefa> {
         }
         return null;
     }
+
+    @Override
+    public boolean update(Tarefa t) {
+        if (t == null) {
+            throw new RegraException("Tarefa nao pode ser nula.");
+        }
+
+        Tarefa existente = acharPorNome(t.getNome());
+
+        if (existente == null) {
+            return false;
+        }
+
+        lista.remove(existente);
+        lista.add(t);
+
+        return true;
+    }
+
+    /**
+     * Atualiza uma tarefa existente.
+     *
+     * A tarefa é localizada pelo nome antigo. Depois de encontrada, ela é
+     * removida do HashSet e substituida pela nova tarefa.
+     *
+     * @param nomeAntigo nome atual da tarefa que será atualizada
+     * @param t tarefa com os novos dados; não pode ser nula
+     * @return {@code true} se a tarefa foi encontrada e atualizada,
+     * {@code false} caso a tarefa não seja encontrada
+     * @throws RegraException se a tarefa for nula ou o nome antigo for nulo ou
+     * vazio
+     */
+    public boolean update(String nomeAntigo, Tarefa t) {
+        if (nomeAntigo == null || nomeAntigo.isBlank()) {
+            throw new RegraException(
+                    "Nome da tarefa para atualizar nao pode ser vazio."
+            );
+        }
+
+        if (t == null) {
+            throw new RegraException(
+                    "Tarefa nao pode ser nula."
+            );
+        }
+
+        Tarefa existente = acharPorNome(nomeAntigo);
+
+        if (existente == null) {
+            return false;
+        }
+
+        lista.remove(existente);
+        lista.add(t);
+
+        return true;
+    }
+
 }

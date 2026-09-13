@@ -5,10 +5,12 @@
 package view;
 
 import dao.CadastroDAO;
+import dao.TarefaDAO;
 import exception.RegraException;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 import model.*;
@@ -45,6 +47,8 @@ public class main {
         Scanner sc = new Scanner(System.in);
 
         CadastroDAO dao = new CadastroDAO();
+        TarefaDAO tarefaDAO = new TarefaDAO();
+
         Agenda agendaAtual = null;
 
         int opcao;
@@ -58,6 +62,8 @@ public class main {
                 System.out.println("4 - Criar tarefa e agenda");
                 System.out.println("5 - Mostrar agenda atual");
                 System.out.println("6 - Adicionar ou remover remedios");
+                System.out.println("7 - Atualizar cadastro");
+                System.out.println("8 - Atualizar tarefa");
                 System.out.println("0 - Sair");
                 System.out.print("Escolha uma opcao: ");
                 opcao = Integer.parseInt(sc.nextLine());
@@ -345,6 +351,8 @@ public class main {
                                 concluida
                         );
 
+                        tarefaDAO.add(tarefa);
+
                         System.out.print("Titulo da agenda: ");
                         String tituloAgenda = sc.nextLine();
 
@@ -482,6 +490,465 @@ public class main {
                         }
                     }
 
+                    case 7 -> {
+                        System.out.println("\n=== ATUALIZAR CADASTRO ===");
+
+                        System.out.print("Nome atual do usuario: ");
+                        String nomeUsuarioAtual = sc.nextLine();
+
+                        Cadastro cadastroAtual = dao.acharPorUsuario(nomeUsuarioAtual);
+
+                        if (cadastroAtual == null) {
+                            System.out.println("Usuario nao encontrado.");
+                            break;
+                        }
+
+                        // -------- USUARIO --------
+                        System.out.print("Novo nome do usuario: ");
+                        String novoNomeUsuario = sc.nextLine();
+
+                        System.out.print("Novo email do usuario: ");
+                        String novoEmail = sc.nextLine();
+
+                        System.out.print("Nova senha do usuario: ");
+                        String novaSenha = sc.nextLine();
+
+                        Usuario novoUsuario = new Usuario(
+                                novoNomeUsuario,
+                                novoEmail,
+                                novaSenha
+                        );
+
+                        // -------- PESSOA --------
+                        System.out.print("Novo nome da pessoa: ");
+                        String novoNomePessoa = sc.nextLine();
+
+                        System.out.print("Nova idade: ");
+                        int novaIdade = Integer.parseInt(sc.nextLine());
+
+                        if (novaIdade < 0) {
+                            throw new IllegalArgumentException("Idade nao pode ser negativa.");
+                        }
+
+                        System.out.print("Nova altura: ");
+                        double novaAltura = Double.parseDouble(sc.nextLine());
+
+                        if (novaAltura < 0) {
+                            throw new IllegalArgumentException("Altura nao pode ser negativa.");
+                        }
+
+                        System.out.print("Novo peso: ");
+                        double novoPeso = Double.parseDouble(sc.nextLine());
+
+                        if (novoPeso < 0) {
+                            throw new IllegalArgumentException("Peso nao pode ser negativo.");
+                        }
+
+                        Pessoa novaPessoa = new Pessoa(
+                                novoNomePessoa,
+                                novaIdade,
+                                novaAltura,
+                                novoPeso
+                        );
+
+                        // -------- REMEDIOS --------
+                        List<Remedio> remediosAtuais = cadastroAtual.getRemedios();
+                        List<Remedio> novosRemedios = new ArrayList<>();
+
+                        for (Remedio r : remediosAtuais) {
+                            Remedio copia = new Remedio(
+                                    r.getNome(),
+                                    r.getDescricao(),
+                                    r.getQtdPilulasAtual(),
+                                    r.getDataInicioMedicacao(),
+                                    r.getPreco(),
+                                    r.getPilulasPorDia()
+                            );
+
+                            novosRemedios.add(copia);
+                        }
+
+                        if (!novosRemedios.isEmpty()) {
+
+                            System.out.print("Deseja atualizar algum remedio? (s/n): ");
+                            String alterarRemedio = sc.nextLine();
+
+                            if (alterarRemedio.equalsIgnoreCase("s")) {
+
+                                System.out.println("\nRemedios cadastrados:");
+
+                                for (int i = 0; i < novosRemedios.size(); i++) {
+                                    System.out.println(
+                                            (i + 1)
+                                            + " - "
+                                            + novosRemedios.get(i).getNome()
+                                    );
+                                }
+
+                                System.out.print("Escolha o numero do remedio: ");
+                                int escolhaRemedio = Integer.parseInt(sc.nextLine()) - 1;
+
+                                if (escolhaRemedio < 0 || escolhaRemedio >= novosRemedios.size()) {
+                                    System.out.println("Opcao invalida.");
+                                    break;
+                                }
+
+                                System.out.print("Novo nome do remedio: ");
+                                String novoNomeRemedio = sc.nextLine();
+
+                                System.out.print("Nova descricao do remedio: ");
+                                String novaDescricaoRemedio = sc.nextLine();
+
+                                System.out.print("Nova quantidade de pilulas: ");
+                                int novaQtdPilulas = Integer.parseInt(sc.nextLine());
+
+                                if (novaQtdPilulas < 0) {
+                                    throw new IllegalArgumentException(
+                                            "Quantidade de pilulas nao pode ser negativa."
+                                    );
+                                }
+
+                                System.out.print("Nova data de inicio - ano: ");
+                                int novoAno = Integer.parseInt(sc.nextLine());
+
+                                System.out.print("Mes: ");
+                                int novoMes = Integer.parseInt(sc.nextLine());
+
+                                System.out.print("Dia: ");
+                                int novoDia = Integer.parseInt(sc.nextLine());
+
+                                LocalDate novaDataInicio = LocalDate.of(
+                                        novoAno,
+                                        novoMes,
+                                        novoDia
+                                );
+
+                                System.out.print("Novo preco: ");
+                                double novoPreco = Double.parseDouble(sc.nextLine());
+
+                                if (novoPreco < 0) {
+                                    throw new IllegalArgumentException(
+                                            "Preco nao pode ser negativo."
+                                    );
+                                }
+
+                                System.out.print("Nova quantidade de pilulas por dia: ");
+                                int novasPilulasPorDia = Integer.parseInt(sc.nextLine());
+
+                                if (novasPilulasPorDia < 0) {
+                                    throw new IllegalArgumentException(
+                                            "Pilulas por dia nao pode ser negativo."
+                                    );
+                                }
+
+                                Remedio remedioAtualizado = new Remedio(
+                                        novoNomeRemedio,
+                                        novaDescricaoRemedio,
+                                        novaQtdPilulas,
+                                        novaDataInicio,
+                                        novoPreco,
+                                        novasPilulasPorDia
+                                );
+
+                                novosRemedios.set(
+                                        escolhaRemedio,
+                                        remedioAtualizado
+                                );
+                            }
+
+                        } else {
+
+                            System.out.println(
+                                    "Este cadastro nao possui remedios."
+                            );
+
+                            System.out.println(
+                                    "Cadastre um remedio para atualizar o cadastro."
+                            );
+
+                            System.out.print("Nome do remedio: ");
+                            String nomeR = sc.nextLine();
+
+                            System.out.print("Descricao: ");
+                            String descR = sc.nextLine();
+
+                            System.out.print("Quantidade de pilulas: ");
+                            int qtdR = Integer.parseInt(sc.nextLine());
+
+                            if (qtdR < 0) {
+                                throw new IllegalArgumentException(
+                                        "Quantidade de pilulas nao pode ser negativa."
+                                );
+                            }
+
+                            System.out.print("Ano de inicio: ");
+                            int anoR = Integer.parseInt(sc.nextLine());
+
+                            System.out.print("Mes: ");
+                            int mesR = Integer.parseInt(sc.nextLine());
+
+                            System.out.print("Dia: ");
+                            int diaR = Integer.parseInt(sc.nextLine());
+
+                            LocalDate dataR = LocalDate.of(
+                                    anoR,
+                                    mesR,
+                                    diaR
+                            );
+
+                            System.out.print("Preco: ");
+                            double precoR = Double.parseDouble(sc.nextLine());
+
+                            if (precoR < 0) {
+                                throw new IllegalArgumentException(
+                                        "Preco nao pode ser negativo."
+                                );
+                            }
+
+                            System.out.print("Pilulas por dia: ");
+                            int ppd = Integer.parseInt(sc.nextLine());
+
+                            if (ppd < 0) {
+                                throw new IllegalArgumentException(
+                                        "Pilulas por dia nao pode ser negativo."
+                                );
+                            }
+
+                            Remedio novoR = new Remedio(
+                                    nomeR,
+                                    descR,
+                                    qtdR,
+                                    dataR,
+                                    precoR,
+                                    ppd
+                            );
+
+                            novosRemedios.add(novoR);
+                        }
+
+                        Cadastro novoCadastro = new Cadastro(
+                                novaPessoa,
+                                novoUsuario,
+                                novosRemedios.get(0)
+                        );
+
+                        for (int i = 1; i < novosRemedios.size(); i++) {
+                            novoCadastro.adicionarRemedio(
+                                    novosRemedios.get(i)
+                            );
+                        }
+
+                        boolean atualizado = dao.update(
+                                nomeUsuarioAtual,
+                                novoCadastro
+                        );
+
+                        if (atualizado) {
+                            System.out.println(
+                                    "Cadastro atualizado com sucesso!"
+                            );
+                        } else {
+                            System.out.println(
+                                    "Nao foi possivel atualizar o cadastro."
+                            );
+                        }
+                    }
+
+                    case 8 -> {
+                        System.out.println("\n=== ATUALIZAR TAREFA ===");
+
+                        if (tarefaDAO.getDados().isEmpty()) {
+                            System.out.println(
+                                    "Nenhuma tarefa cadastrada."
+                            );
+                            break;
+                        }
+
+                        System.out.println("\nTarefas cadastradas:");
+
+                        for (Tarefa t : tarefaDAO.getDados()) {
+                            System.out.println(
+                                    "- " + t.getNome()
+                            );
+                        }
+
+                        System.out.print("Nome atual da tarefa: ");
+                        String nomeTarefaAtual = sc.nextLine();
+
+                        Tarefa tarefaEncontrada =
+                                tarefaDAO.acharPorNome(nomeTarefaAtual);
+
+                        if (tarefaEncontrada == null) {
+                            System.out.println(
+                                    "Tarefa nao encontrada."
+                            );
+                            break;
+                        }
+
+                        System.out.print("Novo titulo da tarefa: ");
+                        String novoTitulo = sc.nextLine();
+
+                        System.out.print("Nova descricao da tarefa: ");
+                        String novaDescricao = sc.nextLine();
+
+                        System.out.println(
+                                "Nova data e hora da tarefa:"
+                        );
+
+                        System.out.print("Ano: ");
+                        int novoAno = Integer.parseInt(sc.nextLine());
+
+                        System.out.print("Mes: ");
+                        int novoMes = Integer.parseInt(sc.nextLine());
+
+                        System.out.print("Dia: ");
+                        int novoDia = Integer.parseInt(sc.nextLine());
+
+                        System.out.print("Hora: ");
+                        int novaHora = Integer.parseInt(sc.nextLine());
+
+                        System.out.print("Minuto: ");
+                        int novoMinuto = Integer.parseInt(sc.nextLine());
+
+                        LocalDateTime novaDataHora =
+                                LocalDateTime.of(
+                                        novoAno,
+                                        novoMes,
+                                        novoDia,
+                                        novaHora,
+                                        novoMinuto
+                                );
+
+                        Categoria novaCategoria = null;
+
+                        while (novaCategoria == null) {
+
+                            System.out.println(
+                                    "\nEscolha a nova categoria:"
+                            );
+
+                            System.out.println(
+                                    "1 - ANTIBIOTICO"
+                            );
+
+                            System.out.println(
+                                    "2 - SUPLEMENTO"
+                            );
+
+                            System.out.println(
+                                    "3 - USO_CONTINUO"
+                            );
+
+                            System.out.print("Opcao: ");
+
+                            int opCategoria =
+                                    Integer.parseInt(sc.nextLine());
+
+                            switch (opCategoria) {
+
+                                case 1 ->
+                                    novaCategoria =
+                                            Categoria.ANTIBIOTICO;
+
+                                case 2 ->
+                                    novaCategoria =
+                                            Categoria.SUPLEMENTO;
+
+                                case 3 ->
+                                    novaCategoria =
+                                            Categoria.USO_CONTINUO;
+
+                                default ->
+                                    System.out.println(
+                                            "Opcao invalida. Digite 1, 2 ou 3."
+                                    );
+                            }
+                        }
+
+                        int novaPrioridade;
+
+                        do {
+
+                            System.out.print(
+                                    "Nova prioridade da tarefa (1 a 3): "
+                            );
+
+                            novaPrioridade =
+                                    Integer.parseInt(
+                                            sc.nextLine()
+                                    );
+
+                            if (novaPrioridade < 1
+                                    || novaPrioridade > 3) {
+
+                                System.out.println(
+                                        "Valor invalido! Digite apenas 1, 2 ou 3."
+                                );
+                            }
+
+                        } while (novaPrioridade < 1
+                                || novaPrioridade > 3);
+
+                        boolean novaConcluida;
+
+                        while (true) {
+
+                            System.out.print(
+                                    "Tarefa concluida? (s/n): "
+                            );
+
+                            String resposta =
+                                    sc.nextLine()
+                                            .trim()
+                                            .toLowerCase();
+
+                            if (resposta.equals("s")) {
+
+                                novaConcluida = true;
+                                break;
+
+                            } else if (resposta.equals("n")) {
+
+                                novaConcluida = false;
+                                break;
+
+                            } else {
+
+                                System.out.println(
+                                        "Opcao invalida. Digite apenas 's' ou 'n'."
+                                );
+                            }
+                        }
+
+                        Tarefa novaTarefa = new Tarefa(
+                                novoTitulo,
+                                novaDescricao,
+                                novaDataHora,
+                                novaCategoria,
+                                novaPrioridade,
+                                novaConcluida
+                        );
+
+                        boolean tarefaAtualizada =
+                                tarefaDAO.update(
+                                        nomeTarefaAtual,
+                                        novaTarefa
+                                );
+
+                        if (tarefaAtualizada) {
+
+                            System.out.println(
+                                    "Tarefa atualizada com sucesso!"
+                            );
+
+                        } else {
+
+                            System.out.println(
+                                    "Nao foi possivel atualizar a tarefa."
+                            );
+                        }
+                    }
+
                     case 0 ->
                         System.out.println("Encerrando o programa...");
 
@@ -492,16 +959,38 @@ public class main {
             } while (opcao != 0);
 
             sc.close();
+
         } catch (NumberFormatException e) {
-            System.out.println("Erro: valor numerico invalido.");
+
+            System.out.println(
+                    "Erro: valor numerico invalido."
+            );
+
         } catch (DateTimeException e) {
-            System.out.println("Erro: data ou hora invalida.");
+
+            System.out.println(
+                    "Erro: data ou hora invalida."
+            );
+
         } catch (IllegalArgumentException e) {
-            System.out.println("Erro: " + e.getMessage());
+
+            System.out.println(
+                    "Erro: " + e.getMessage()
+            );
+
         } catch (RegraException re) {
-            System.out.println("Erro de regra de negocio: " + re.getMessage());
+
+            System.out.println(
+                    "Erro de regra de negocio: "
+                    + re.getMessage()
+            );
+
         } catch (Exception e) {
-            System.out.println("Erro inesperado: " + e.getMessage());
+
+            System.out.println(
+                    "Erro inesperado: "
+                    + e.getMessage()
+            );
         }
     }
 }
