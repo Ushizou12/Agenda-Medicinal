@@ -8,7 +8,8 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- *
+ * Representa um item de agenda, que pode estar vinculado a um remédio
+ * e, opcionalmente, a uma tarefa.
  * @author Ushizou
  */
 public class Agenda {
@@ -21,69 +22,154 @@ public class Agenda {
     private boolean concluida;
 
     // Construtor focado em remedio.
+    /**
+     * Cria um item de agenda focado em um remédio.
+     *
+     * @param data       data e hora do compromisso; não pode ser nula
+     * @param nome       nome do compromisso; não pode ser nulo ou vazio
+     * @param descricao  descrição do compromisso
+     * @param remedio    remédio vinculado (pode ser {@code null})
+     * @param concluida  indica se o compromisso já foi concluído
+     * @throws IllegalArgumentException se {@code data} ou {@code nome} forem inválidos
+     */
     public Agenda(LocalDateTime data, String nome, String descricao, Remedio remedio, boolean concluida) {
-        this.data = data;
-        this.nome = nome;
-        this.descricao = descricao;
+        setData(data);
+        setNome(nome);
+        setDescricao(descricao);
         this.remedio = remedio;
         this.concluida = concluida;
     }
 
-    // Construtor completo: remedio + tarefa juntos.
+    /**
+     * Cria um item de agenda completo, vinculando remédio e tarefa.
+     *
+     * @param data       data e hora do compromisso; não pode ser nula
+     * @param nome       nome do compromisso; não pode ser nulo ou vazio
+     * @param descricao  descrição do compromisso
+     * @param remedio    remédio vinculado (pode ser {@code null})
+     * @param tarefa     tarefa vinculada (pode ser {@code null})
+     * @param concluida  indica se o compromisso já foi concluído
+     * @throws IllegalArgumentException se {@code data} ou {@code nome} forem inválidos
+     */
     public Agenda(LocalDateTime data, String nome, String descricao, Remedio remedio, Tarefa tarefa, boolean concluida) {
         this(data, nome, descricao, remedio, concluida);
         this.tarefa = tarefa;
     }
 
+    /**
+     * @return a data e hora do compromisso
+     */
     public LocalDateTime getData() {
         return data;
     }
 
+    /**
+     * Define a data e hora do compromisso.
+     *
+     * @param data data e hora; não pode ser nula
+     * @throws IllegalArgumentException se {@code data} for nula
+     */
     public void setData(LocalDateTime data) {
+        if (data == null) {
+            throw new IllegalArgumentException("Data nao pode ser nula.");
+        }
         this.data = data;
     }
 
+    /**
+     * @return o nome do compromisso
+     */
     public String getNome() {
         return nome;
     }
 
+    /**
+     * Define o nome do compromisso.
+     *
+     * @param nome nome do compromisso; não pode ser nulo ou vazio
+     * @throws IllegalArgumentException se {@code nome} for nulo ou vazio
+     */
     public void setNome(String nome) {
+        if (nome == null || nome.isBlank()) {
+            throw new IllegalArgumentException("Nome nao pode ser vazio.");
+        }
         this.nome = nome;
     }
 
+    /**
+     * @return a descrição do compromisso
+     */
     public String getDescricao() {
         return descricao;
     }
 
+    /**
+     * Define a descrição do compromisso.
+     *
+     * @param descricao descrição do compromisso
+     * @throws IllegalArgumentException se {@code nome} for nulo ou vazio
+     */
     public void setDescricao(String descricao) {
+        if (descricao == null || descricao.isBlank()) {
+            throw new IllegalArgumentException("Descricao nao pode ser vazio.");
+        }
         this.descricao = descricao;
     }
 
+    /**
+     * @return a tarefa vinculada a este item de agenda, ou {@code null} se não houver
+     */
     public Tarefa getTarefa() {
         return tarefa;
     }
 
+    /**
+     * Define a tarefa vinculada a este item de agenda.
+     *
+     * @param tarefa tarefa a vincular (pode ser {@code null})
+     */
     public void setTarefa(Tarefa tarefa) {
         this.tarefa = tarefa;
     }
 
+    /**
+     * @return {@code true} se o item de agenda já foi concluído
+     */
     public boolean isConcluida() {
         return concluida;
     }
 
+    /**
+     * Define se o item de agenda está concluído.
+     *
+     * @param concluida {@code true} se concluído
+     */
     public void setConcluida(boolean concluida) {
         this.concluida = concluida;
     }
     
+    /**
+     * @return o remédio vinculado a este item de agenda, ou {@code null} se não houver
+     */
     public Remedio getRemedio() {
         return remedio;
     }
     
+    /**
+     * Define o remédio vinculado a este item de agenda.
+     *
+     * @param remedio remédio a vincular (pode ser {@code null})
+     */
     public void setRemedio(Remedio remedio) {
         this.remedio = remedio; 
     }
 
-    // Verifica se esta dentro do prazo do remedio vinculado.
+    /**
+     * Consulta o status de estoque do remédio vinculado a este item de agenda.
+     *
+     * @return o status do remédio, ou uma mensagem indicando que não há
+     *         remédio vinculado
+     */
     public String getStatusRemedio() {
         if (remedio == null) return "Nenhum remédio vinculado";
         return remedio.getStatusMedicacao();

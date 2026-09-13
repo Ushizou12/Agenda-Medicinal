@@ -5,6 +5,7 @@
 package view;
 
 import dao.CadastroDAO;
+import exception.RegraException;
 import java.time.DateTimeException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -497,6 +498,8 @@ public class main {
             System.out.println("Erro: data ou hora invalida.");
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
+        } catch (RegraException re) {
+            System.out.println("Erro de regra de negocio: " + re.getMessage());
         } catch (Exception e) {
             System.out.println("Erro inesperado: " + e.getMessage());
         }

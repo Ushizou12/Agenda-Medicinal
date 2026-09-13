@@ -6,10 +6,11 @@ package model;
 
 import java.time.LocalDate;
 import java.util.Objects;
-import java.time.temporal.ChronoUnit;
 
 /**
- *
+ * Representa um remédio em uso, controlando estoque de pílulas, preço
+ * e o período de tratamento (calculado a partir da data de início e
+ * do consumo diário).
  * @author Ushizou
  */
 public class Remedio {
@@ -22,69 +23,155 @@ public class Remedio {
     private double preco;
     private int pilulasPorDia;
 
+    /**
+     * Cria um novo remédio, validando todos os campos e calculando
+     * automaticamente a data final da medicação.
+     *
+     * @param nome                nome do remédio; não pode ser nulo ou vazio
+     * @param descricao           descrição do remédio
+     * @param qtdPilulas          quantidade inicial de pílulas; não pode ser negativa
+     * @param dataInicioMedicacao data de início do tratamento; não pode ser nula
+     * @param preco               preço do remédio; não pode ser negativo
+     * @param pilulasPorDia       quantidade de pílulas consumidas por dia; deve ser maior que zero
+     * @throws IllegalArgumentException se algum dos valores for inválido
+     */
     public Remedio(String nome, String descricao, int qtdPilulas, LocalDate dataInicioMedicacao, double preco, int pilulasPorDia) {
-        this.nome = nome;
-        this.descricao = descricao;
-        this.qtdPilulasAtual = qtdPilulas;
-        this.dataInicioMedicacao = dataInicioMedicacao;
-        this.preco = preco;
-        this.pilulasPorDia = pilulasPorDia;
+        setNome(nome);
+        setDescricao(descricao);
+        setPilulasPorDia(pilulasPorDia);
+        setQtdPilulasAtual(qtdPilulas);
+        setDataInicioMedicacao(dataInicioMedicacao);
+        setPreco(preco);
         calcularDataFinalMedicacao();
     }
     
-    // Calcula quantos dias restam de remédio baseado na qtd de Pilulas dividido por pilulas consumidas diariamente, retornando um integer de dias restantes da medicacao.
+    /**
+     * Calcula quantos dias de tratamento restam com base no estoque atual.
+     *
+     * @param pilulasPorDia quantidade de pílulas consumidas por dia; deve ser
+     * maior que zero
+     * @return número inteiro de dias restantes (arredondado para baixo)
+     * @throws IllegalArgumentException se {@code pilulasPorDia} for menor ou
+     * igual a zero
+     */
     public int calcularDiasRestantes(int pilulasPorDia) {
+        if (pilulasPorDia <= 0) {
+            throw new IllegalArgumentException("Pilulas por dia deve ser maior que zero.");
+        }
         return this.qtdPilulasAtual / pilulasPorDia;
     }
     
-    // Serve para tomar uma dose do remédio.
+    /**
+     * Consome uma dose diária do remédio, reduzindo o estoque atual.
+     * Não faz nada caso o estoque já esteja zerado.
+     */
     public void tomarDose() {
         if (qtdPilulasAtual > 0) {
             qtdPilulasAtual -= pilulasPorDia;
         }
     }
 
+    /**
+     * @return o nome do remédio
+     */
     public String getNome() {
         return nome;
     }
 
+    /**
+     * Define o nome do remédio.
+     *
+     * @param nome nome do remédio; não pode ser nulo ou vazio
+     * @throws IllegalArgumentException se {@code nome} for nulo ou vazio
+     */
     public void setNome(String nome) {
+        if (nome == null || nome.isBlank()) {
+            throw new IllegalArgumentException("Nome nao pode ser vazio.");
+        }
         this.nome = nome;
     }
 
+    /**
+     * @return a descrição do remédio
+     */
     public String getDescricao() {
         return descricao;
     }
 
+    /**
+     * Define a descrição do remédio.
+     *
+     * @param descricao descrição do remédio; não pode ser nula
+     * @throws IllegalArgumentException se {@code descricao} for nula
+     */
     public void setDescricao(String descricao) {
+        if (descricao == null) {
+            throw new IllegalArgumentException("Descricao nao pode ser nula.");
+        }
         this.descricao = descricao;
     }
 
+    /**
+     * @return a quantidade atual de pílulas em estoque
+     */
     public int getQtdPilulasAtual() {
         return qtdPilulasAtual;
     }
 
+    /**
+     * Define a quantidade atual de pílulas em estoque.
+     *
+     * @param qtdPilulasAtual quantidade de pílulas; não pode ser negativa
+     * @throws IllegalArgumentException se {@code qtdPilulasAtual} for negativa
+     */
     public void setQtdPilulasAtual(int qtdPilulasAtual) {
-        this.qtdPilulasAtual = qtdPilulasAtual;
+    if (qtdPilulasAtual < 0) {
+        throw new IllegalArgumentException("Quantidade de pilulas nao pode ser negativa.");
+    }
+    this.qtdPilulasAtual = qtdPilulasAtual;
     }
 
+    /**
+     * @return a data de início da medicação
+     */
     public LocalDate getDataInicioMedicacao() {
         return dataInicioMedicacao;
     }
 
+    /**
+     * Define a data de início da medicação.
+     *
+     * @param dataInicioMedicacao data de início; não pode ser nula
+     * @throws IllegalArgumentException se {@code dataInicioMedicacao} for nula
+     */
     public void setDataInicioMedicacao(LocalDate dataInicioMedicacao) {
+        if (dataInicioMedicacao == null) {
+            throw new IllegalArgumentException("Data de inicio nao pode ser nula.");
+        }
         this.dataInicioMedicacao = dataInicioMedicacao;
     }
 
+    /**
+     * @return a data prevista para o fim da medicação
+     */
     public LocalDate getDataFinalMedicacao() {
         return dataFinalMedicacao;
     }
     
-    // Calcula quando ira acabar o remedio.
+    /**
+     * Calcula e atualiza a data prevista para o fim da medicação,
+     * somando à data de início os dias restantes de tratamento.
+     */
     public void calcularDataFinalMedicacao() {
         this.dataFinalMedicacao = dataInicioMedicacao.plusDays(calcularDiasRestantes(pilulasPorDia));
     }
 
+    /**
+     * Verifica se a medicação ainda está dentro do prazo previsto.
+     *
+     * @return {@code "Prazo expirado"} se a data atual já passou da data
+     *         final, ou {@code "Dentro do prazo"} caso contrário
+     */
     public String getPrazoMedicacao() {
         LocalDate hoje = LocalDate.now();
 
@@ -95,7 +182,12 @@ public class Remedio {
         return "Dentro do prazo";
     }
     
-    // Retorna o status da medicacao sendo String, se houver 5 ou menor avisa, avisa quando acabar, e se tiver uma boa quantidade retorna normal.
+    /**
+     * Retorna o status do estoque de pílulas: se acabou, se está acabando
+     * (5 ou menos) ou se está em quantidade normal.
+     *
+     * @return uma mensagem descrevendo o status atual do estoque
+     */
     public String getStatusMedicacao() {
         if (qtdPilulasAtual <= 0) {
             return "Medicao acabou!";
@@ -108,19 +200,43 @@ public class Remedio {
         return "Estoque normal";
     }
 
+    /**
+     * @return o preço do remédio
+     */
     public double getPreco() {
         return preco;
     }
 
+    /**
+     * Define o preço do remédio.
+     *
+     * @param preco preço do remédio; não pode ser negativo
+     * @throws IllegalArgumentException se {@code preco} for negativo
+     */
     public void setPreco(double preco) {
+        if (preco < 0) {
+            throw new IllegalArgumentException("Preco nao pode ser negativo.");
+        }
         this.preco = preco;
     }
 
+    /**
+     * @return a quantidade de pílulas consumidas por dia
+     */
     public int getPilulasPorDia() {
         return pilulasPorDia;
     }
 
+    /**
+     * Define a quantidade de pílulas consumidas por dia.
+     *
+     * @param pilulasPorDia quantidade diária; deve ser maior que zero
+     * @throws IllegalArgumentException se {@code pilulasPorDia} for menor ou igual a zero
+     */
     public void setPilulasPorDia(int pilulasPorDia) {
+        if (pilulasPorDia <= 0) {
+            throw new IllegalArgumentException("Pilulas por dia deve ser maior que zero.");
+        }
         this.pilulasPorDia = pilulasPorDia;
     }
 

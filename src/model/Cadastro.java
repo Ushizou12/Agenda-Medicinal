@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- *
+ * Representa o cadastro completo de um usuário do sistema, agrupando
+ * seus dados pessoais ({@link Pessoa}), suas credenciais ({@link Usuario})
+ * e a lista de remédios em uso.
  * @author Ushizou
  */
 public class Cadastro {
@@ -18,38 +20,83 @@ public class Cadastro {
     private Usuario usuario;
     private List<Remedio> remedios;
 
+    /**
+     * Cria um novo cadastro com um primeiro remédio já vinculado.
+     *
+     * @param pessoa  dados pessoais; não pode ser nulo
+     * @param usuario credenciais do usuário; não pode ser nulo
+     * @param remedio primeiro remédio a cadastrar; não pode ser nulo
+     * @throws IllegalArgumentException se algum dos parâmetros for nulo
+     */
     public Cadastro(Pessoa pessoa, Usuario usuario, Remedio remedio) {
+        if (pessoa == null) {
+            throw new IllegalArgumentException("Pessoa nao pode ser nula.");
+        }
+        if (usuario == null) {
+            throw new IllegalArgumentException("Usuario nao pode ser nulo.");
+        }
         this.pessoa = pessoa;
         this.usuario = usuario;
         this.remedios = new ArrayList<>();
-        this.remedios.add(remedio);
+        adicionarRemedio(remedio);
     }
 
+    /**
+     * @return os dados pessoais do cadastro
+     */
     public Pessoa getPessoa() {
         return pessoa;
     }
 
+    /**
+     * @return as credenciais do usuário do cadastro
+     */
     public Usuario getUsuario() {
         return usuario;
     }
 
+    /**
+     * @return a lista de remédios cadastrados
+     */
     public List<Remedio> getRemedios() {
         return remedios;
     }
 
-    // Adicionar remedio ao array
+    /**
+     * Adiciona um remédio à lista de remédios do cadastro.
+     *
+     * @param remedio remédio a adicionar; não pode ser nulo
+     * @throws IllegalArgumentException se {@code remedio} for nulo
+     */
     public void adicionarRemedio(Remedio remedio) {
-        if (remedio != null) {
-            remedios.add(remedio);
+        if (remedio == null) {
+            throw new IllegalArgumentException("Remedio nao pode ser nulo.");
         }
+        remedios.add(remedio);
     }
     
-    // Remover remedio ao array
+    /**
+     * Remove um remédio da lista de remédios do cadastro.
+     *
+     * @param remedio remédio a remover
+     * @return {@code true} se o remédio foi removido com sucesso
+     */
     public boolean removerRemedio(Remedio remedio) {
         return remedios.remove(remedio);
     }
 
+    /**
+     * Define (ou substitui) o primeiro remédio da lista. Se a lista
+     * estiver vazia, o remédio é adicionado; caso contrário, substitui
+     * o remédio na posição 0.
+     *
+     * @param remedio remédio a definir; não pode ser nulo
+     * @throws IllegalArgumentException se {@code remedio} for nulo
+     */
     public void setRemedio(Remedio remedio) {
+        if (remedio == null) {
+            throw new IllegalArgumentException("Remedio nao pode ser nulo.");
+        }
         if (remedios.isEmpty()) {
             remedios.add(remedio);
         } else {

@@ -7,7 +7,10 @@ package model;
 import java.util.Objects;
 
 /**
- *
+ * Representa o usuário do sistema, responsável pelo login e identificação
+ * da pessoa que utiliza a aplicação. Garante, por meio de validação no
+ * construtor e nos setters, que nome, email e senha sempre estejam em
+ * um estado consistente.
  * @author Ushizou
  */
 public class Usuario {
@@ -16,52 +19,97 @@ public class Usuario {
     private String email;
     private String senha;
 
+    /**
+     * Cria um novo usuário já validando nome, email e senha.
+     *
+     * @param nome  nome do usuário; não pode ser nulo ou vazio
+     * @param email email do usuário; deve conter '@' e '.'
+     * @param senha senha do usuário; deve ter no mínimo 6 caracteres
+     * @throws IllegalArgumentException se algum dos valores for inválido
+     */
     public Usuario(String nome, String email, String senha) {
-
-        this.nome = nome;
-        this.email = email;
-        this.senha = senha;
-
-        if (!validarEmail()) {
-            throw new IllegalArgumentException("Email invalido");
-        }
-
-        if (!validarSenha()) {
-            throw new IllegalArgumentException("Senha invalida");
-        }
+        setNome(nome);
+        setEmail(email);
+        setSenha(senha);
     }
 
+    /**
+     * Define o nome do usuário.
+     *
+     * @param nome nome do usuário; não pode ser nulo ou vazio
+     * @throws IllegalArgumentException se {@code nome} for nulo ou vazio
+     */
+    public void setNome(String nome) {
+        if (nome == null || nome.isBlank()) {
+            throw new IllegalArgumentException("Nome nao pode ser vazio.");
+        }
+        this.nome = nome;
+    }
+
+    /**
+     * Define o email do usuário, validando seu formato.
+     *
+     * @param email email a ser definido; deve conter '@' e '.'
+     * @throws IllegalArgumentException se o email for inválido
+     */
+    public void setEmail(String email) {
+        if (!validarEmail(email)) {
+            throw new IllegalArgumentException("Email invalido");
+        }
+        this.email = email;
+    }
+
+    /**
+     * Define a senha do usuário, validando seu tamanho mínimo.
+     *
+     * @param senha senha a ser definida; deve ter no mínimo 6 caracteres
+     * @throws IllegalArgumentException se a senha for inválida
+     */
+    public void setSenha(String senha) {
+        if (!validarSenha(senha)) {
+            throw new IllegalArgumentException("Senha invalida");
+        }
+        this.senha = senha;
+    }
+
+    /**
+     * @return o nome do usuário
+     */
     public String getNome() {
         return nome;
     }
 
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
+    /**
+     * @return o email do usuário
+     */
     public String getEmail() {
         return email;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
+    /**
+     * @return a senha do usuário
+     */
     public String getSenha() {
         return senha;
     }
-
-    public void setSenha(String senha) {
-        this.senha = senha;
+    
+    /**
+     * Verifica se o email informado contém '@' e '.'.
+     *
+     * @param email valor a ser validado
+     * @return {@code true} se o email for válido
+     */
+    public boolean validarEmail(String email) {
+        return email != null && email.contains("@") && email.contains(".");
     }
     
-    // Retorna booleano e checa se o email inserido contém @ e .
-    public boolean validarEmail() {
-        return this.email != null && email.contains("@") && email.contains(".");
-    }
-    
-    // Checa se a semha inserida contém no mínimo 6 caracteres.
-    public boolean validarSenha() {
+    /**
+     * Verifica se a senha informada tem no mínimo 6 caracteres.
+     *
+     * @param senha valor a ser validado
+     * @return {@code true} se a senha for válida
+     */
+    public boolean validarSenha(String senha) {
         return senha != null && senha.length() >= 6;
     }
 
