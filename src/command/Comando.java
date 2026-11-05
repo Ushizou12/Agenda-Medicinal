@@ -8,6 +8,8 @@ package command;
  *
  * @author 2025001861
  */
+@FunctionalInterface
 public interface Comando {
-    
+
+    void executar();
 }

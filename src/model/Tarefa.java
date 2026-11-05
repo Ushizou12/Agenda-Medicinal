@@ -8,9 +8,9 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 /**
- * Representa uma tarefa a ser cumprida, com prazo, categoria e prioridade
- * (de 1 a 3). Implementa {@link Comparable} para permitir ordenação por
- * prioridade.
+ * Representa uma tarefa a ser cumprida, com prazo, categoria e prioridade (de 1
+ * a 3). Implementa {@link Comparable} para permitir ordenação por prioridade.
+ *
  * @author 2025001861
  */
 public class Tarefa implements Comparable<Tarefa> {
@@ -26,21 +26,21 @@ public class Tarefa implements Comparable<Tarefa> {
      * Cria uma nova tarefa, validando nome, data limite, categoria e
      * prioridade.
      *
-     * @param nome       nome da tarefa; não pode ser nulo ou vazio
-     * @param descricao  descrição da tarefa
+     * @param nome nome da tarefa; não pode ser nulo ou vazio
+     * @param descricao descrição da tarefa
      * @param dataLimite prazo final da tarefa; não pode ser nulo
-     * @param categoria  categoria da tarefa; não pode ser nula
+     * @param categoria categoria da tarefa; não pode ser nula
      * @param prioridade prioridade da tarefa, entre 1 e 3
-     * @param concluida  indica se a tarefa já foi concluída
+     * @param concluida indica se a tarefa já foi concluída
      * @throws IllegalArgumentException se algum dos valores for inválido
      */
-    public Tarefa(String nome, String descricao, LocalDateTime dataLimite, Categoria categoria, int prioridade, boolean concluida) {
-        setNome(nome);
-        setDescricao(descricao);
-        setDataLimite(dataLimite);
-        setCategoria(categoria);
-        setPrioridade(prioridade);
-        this.concluida = concluida;
+    private Tarefa(Builder builder) {
+        setNome(builder.nome);
+        setDescricao(builder.descricao);
+        setDataLimite(builder.dataLimite);
+        setCategoria(builder.categoria);
+        setPrioridade(builder.prioridade);
+        this.concluida = builder.concluida;
     }
 
     /**
@@ -141,7 +141,8 @@ public class Tarefa implements Comparable<Tarefa> {
      * Define a prioridade da tarefa.
      *
      * @param prioridade prioridade, deve estar entre 1 e 3
-     * @throws IllegalArgumentException se {@code prioridade} estiver fora do intervalo 1-3
+     * @throws IllegalArgumentException se {@code prioridade} estiver fora do
+     * intervalo 1-3
      */
     public void setPrioridade(int prioridade) {
         if (prioridade < 1 || prioridade > 3) {
@@ -154,15 +155,15 @@ public class Tarefa implements Comparable<Tarefa> {
      * Define se a tarefa está concluída.
      *
      * @param concluida {@code true} se concluída
-     */ 
+     */
     public void setConcluida(boolean concluida) {
         this.concluida = concluida;
     }
-    
+
     /**
-     * Compara a data limite da tarefa com o momento atual, imprimindo
-     * no console se o prazo já expirou ou não.
-     */ 
+     * Compara a data limite da tarefa com o momento atual, imprimindo no
+     * console se o prazo já expirou ou não.
+     */
     public void dataLimite() {
         LocalDateTime hoje = LocalDateTime.now();
 
@@ -172,7 +173,7 @@ public class Tarefa implements Comparable<Tarefa> {
             System.out.println("Voce ainda este no prazo.");
         }
     }
-    
+
     /**
      * Compara esta tarefa com outra com base na prioridade, em ordem
      * decrescente (prioridade mais alta primeiro).
@@ -238,5 +239,63 @@ public class Tarefa implements Comparable<Tarefa> {
             Prioridade     : %s
             Status:        : %s
            """.formatted(nome, descricao, dataLimite, categoria, prioridade, concluida ? "Concluído" : "Pendente");
+    }
+
+    public static class Builder {
+
+        private String nome;
+        private String descricao;
+        private LocalDateTime dataLimite;
+        private Categoria categoria;
+        private int prioridade;
+        private boolean concluida;
+
+        public Builder nome(String nome) {
+            this.nome = nome;
+            return this;
+        }
+
+        public Builder descricao(String descricao) {
+            this.descricao = descricao;
+            return this;
+        }
+
+        public Builder dataLimite(LocalDateTime dataLimite) {
+            this.dataLimite = dataLimite;
+            return this;
+        }
+
+        public Builder categoria(Categoria categoria) {
+            this.categoria = categoria;
+            return this;
+        }
+
+        public Builder prioridade(int prioridade) {
+            this.prioridade = prioridade;
+            return this;
+        }
+
+        public Builder concluida(boolean concluida) {
+            this.concluida = concluida;
+            return this;
+        }
+
+        public Tarefa build() {
+            return new Tarefa(this);
+        }
+    }
+
+    public static void main(String[] args) {
+
+        Tarefa tt = new Tarefa.Builder()
+                .nome("Tomar medicamento")
+                .descricao("Tomar antibiótico após o almoço")
+                .dataLimite(LocalDateTime.of(2026, 11, 4, 15, 30))
+                .categoria(Categoria.ANTIBIOTICO)
+                .prioridade(1)
+                .concluida(true)
+                .build();
+
+        System.out.println(tt);
     }
 }
