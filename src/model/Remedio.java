@@ -8,9 +8,10 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 /**
- * Representa um remédio em uso, controlando estoque de pílulas, preço
- * e o período de tratamento (calculado a partir da data de início e
- * do consumo diário).
+ * Representa um remédio em uso, controlando estoque de pílulas, preço e o
+ * período de tratamento (calculado a partir da data de início e do consumo
+ * diário).
+ *
  * @author Ushizou
  */
 public class Remedio {
@@ -27,24 +28,26 @@ public class Remedio {
      * Cria um novo remédio, validando todos os campos e calculando
      * automaticamente a data final da medicação.
      *
-     * @param nome                nome do remédio; não pode ser nulo ou vazio
-     * @param descricao           descrição do remédio
-     * @param qtdPilulas          quantidade inicial de pílulas; não pode ser negativa
-     * @param dataInicioMedicacao data de início do tratamento; não pode ser nula
-     * @param preco               preço do remédio; não pode ser negativo
-     * @param pilulasPorDia       quantidade de pílulas consumidas por dia; deve ser maior que zero
+     * @param nome nome do remédio; não pode ser nulo ou vazio
+     * @param descricao descrição do remédio
+     * @param qtdPilulas quantidade inicial de pílulas; não pode ser negativa
+     * @param dataInicioMedicacao data de início do tratamento; não pode ser
+     * nula
+     * @param preco preço do remédio; não pode ser negativo
+     * @param pilulasPorDia quantidade de pílulas consumidas por dia; deve ser
+     * maior que zero
      * @throws IllegalArgumentException se algum dos valores for inválido
      */
-    public Remedio(String nome, String descricao, int qtdPilulas, LocalDate dataInicioMedicacao, double preco, int pilulasPorDia) {
-        setNome(nome);
-        setDescricao(descricao);
-        setPilulasPorDia(pilulasPorDia);
-        setQtdPilulasAtual(qtdPilulas);
-        setDataInicioMedicacao(dataInicioMedicacao);
-        setPreco(preco);
+    private Remedio(Builder builder) {
+        setNome(builder.nome);
+        setDescricao(builder.descricao);
+        setPilulasPorDia(builder.pilulasPorDia);
+        setQtdPilulasAtual(builder.qtdPilulasAtual);
+        setDataInicioMedicacao(builder.dataInicioMedicacao);
+        setPreco(builder.preco);
         calcularDataFinalMedicacao();
     }
-    
+
     /**
      * Calcula quantos dias de tratamento restam com base no estoque atual.
      *
@@ -60,10 +63,10 @@ public class Remedio {
         }
         return this.qtdPilulasAtual / pilulasPorDia;
     }
-    
+
     /**
-     * Consome uma dose diária do remédio, reduzindo o estoque atual.
-     * Não faz nada caso o estoque já esteja zerado.
+     * Consome uma dose diária do remédio, reduzindo o estoque atual. Não faz
+     * nada caso o estoque já esteja zerado.
      */
     public void tomarDose() {
         if (qtdPilulasAtual > 0) {
@@ -125,10 +128,10 @@ public class Remedio {
      * @throws IllegalArgumentException se {@code qtdPilulasAtual} for negativa
      */
     public void setQtdPilulasAtual(int qtdPilulasAtual) {
-    if (qtdPilulasAtual < 0) {
-        throw new IllegalArgumentException("Quantidade de pilulas nao pode ser negativa.");
-    }
-    this.qtdPilulasAtual = qtdPilulasAtual;
+        if (qtdPilulasAtual < 0) {
+            throw new IllegalArgumentException("Quantidade de pilulas nao pode ser negativa.");
+        }
+        this.qtdPilulasAtual = qtdPilulasAtual;
     }
 
     /**
@@ -157,10 +160,10 @@ public class Remedio {
     public LocalDate getDataFinalMedicacao() {
         return dataFinalMedicacao;
     }
-    
+
     /**
-     * Calcula e atualiza a data prevista para o fim da medicação,
-     * somando à data de início os dias restantes de tratamento.
+     * Calcula e atualiza a data prevista para o fim da medicação, somando à
+     * data de início os dias restantes de tratamento.
      */
     public void calcularDataFinalMedicacao() {
         this.dataFinalMedicacao = dataInicioMedicacao.plusDays(calcularDiasRestantes(pilulasPorDia));
@@ -169,8 +172,8 @@ public class Remedio {
     /**
      * Verifica se a medicação ainda está dentro do prazo previsto.
      *
-     * @return {@code "Prazo expirado"} se a data atual já passou da data
-     *         final, ou {@code "Dentro do prazo"} caso contrário
+     * @return {@code "Prazo expirado"} se a data atual já passou da data final,
+     * ou {@code "Dentro do prazo"} caso contrário
      */
     public String getPrazoMedicacao() {
         LocalDate hoje = LocalDate.now();
@@ -181,10 +184,10 @@ public class Remedio {
 
         return "Dentro do prazo";
     }
-    
+
     /**
-     * Retorna o status do estoque de pílulas: se acabou, se está acabando
-     * (5 ou menos) ou se está em quantidade normal.
+     * Retorna o status do estoque de pílulas: se acabou, se está acabando (5 ou
+     * menos) ou se está em quantidade normal.
      *
      * @return uma mensagem descrevendo o status atual do estoque
      */
@@ -231,7 +234,8 @@ public class Remedio {
      * Define a quantidade de pílulas consumidas por dia.
      *
      * @param pilulasPorDia quantidade diária; deve ser maior que zero
-     * @throws IllegalArgumentException se {@code pilulasPorDia} for menor ou igual a zero
+     * @throws IllegalArgumentException se {@code pilulasPorDia} for menor ou
+     * igual a zero
      */
     public void setPilulasPorDia(int pilulasPorDia) {
         if (pilulasPorDia <= 0) {
@@ -312,4 +316,47 @@ public class Remedio {
         );
     }
 
+    public static class Builder {
+
+        private String nome;
+        private String descricao;
+        private int qtdPilulasAtual;
+        private LocalDate dataInicioMedicacao;
+        private double preco;
+        private int pilulasPorDia;
+
+        public Builder nome(String nome) {
+            this.nome = nome;
+            return this;
+        }
+
+        public Builder descricao(String descricao) {
+            this.descricao = descricao;
+            return this;
+        }
+
+        public Builder qtdPilulasAtual(int qtdPilulasAtual) {
+            this.qtdPilulasAtual = qtdPilulasAtual;
+            return this;
+        }
+
+        public Builder dataInicioMedicacao(LocalDate dataInicioMedicacao) {
+            this.dataInicioMedicacao = dataInicioMedicacao;
+            return this;
+        }
+
+        public Builder preco(double preco) {
+            this.preco = preco;
+            return this;
+        }
+
+        public Builder pilulasPorDia(int pilulasPorDia) {
+            this.pilulasPorDia = pilulasPorDia;
+            return this;
+        }
+
+        public Remedio build() {
+            return new Remedio(this);
+        }
+    }
 }

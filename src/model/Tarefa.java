@@ -284,18 +284,4 @@ public class Tarefa implements Comparable<Tarefa> {
             return new Tarefa(this);
         }
     }
-
-    public static void main(String[] args) {
-
-        Tarefa tt = new Tarefa.Builder()
-                .nome("Tomar medicamento")
-                .descricao("Tomar antibiótico após o almoço")
-                .dataLimite(LocalDateTime.of(2026, 11, 4, 15, 30))
-                .categoria(Categoria.ANTIBIOTICO)
-                .prioridade(1)
-                .concluida(true)
-                .build();
-
-        System.out.println(tt);
-    }
 }
