@@ -106,7 +106,20 @@ public class Tarefa implements Comparable<Tarefa> {
     public boolean isConcluida() {
         return concluida;
     }
-
+    
+    /**
+     * Define o id da tarefa.
+     *
+     * @param id id da tarefa; não pode ser nulo ou vazio
+     * @throws IllegalArgumentException se {@code id} for nulo ou vazio
+     */
+    public void setId(Long id) {
+        if (id == null) {
+            throw new IllegalArgumentException("Id nao pode ser nulo.");
+        }
+        this.id = id;
+    }
+    
     /**
      * Define o nome da tarefa.
      *
