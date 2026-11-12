@@ -10,7 +10,8 @@ import command.ListarCadastrosComando;
 import command.Menu;
 import command.MostrarAgendaComando;
 import dao.CadastroDAO;
-import dao.TarefaDAOMemoria;
+import dao.TarefaDAOJpa;
+import dao.JPAUtil;
 import facade.AgendaFacade;
 import java.util.Scanner;
 
@@ -24,7 +25,7 @@ public class main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         LeitorConsole leitor = new LeitorConsole(sc);
-        AgendaFacade facade = new AgendaFacade(new CadastroDAO(), new TarefaDAOMemoria());
+        AgendaFacade facade = new AgendaFacade(new CadastroDAO(), new TarefaDAOJpa());
 
         Menu menu = new Menu();
         menu.registrar(1, "Cadastrar usuario/pessoa/remedio", new CadastrarComando(leitor, facade));
@@ -43,7 +44,7 @@ public class main {
             opcao = lerOpcao(leitor);
             menu.executar(opcao);
         } while (opcao != 0);
-
+        JPAUtil.fechar();
         sc.close();
     }
 
