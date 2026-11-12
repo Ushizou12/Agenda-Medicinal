@@ -1,11 +1,7 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package facade;
 
 import dao.CadastroDAO;
-import dao.TarefaDAO;
+import dao.TarefaDAOMemoria;
 import dto.CadastroDTO;
 import dto.RemedioDTO;
 import dto.TarefaDTO;
@@ -27,10 +23,10 @@ import model.Usuario;
 public class AgendaFacade {
 
     private final CadastroDAO cadastroDAO;
-    private final TarefaDAO tarefaDAO;
+    private final TarefaDAOMemoria tarefaDAO;
     private Agenda agendaAtual; // TODO: trocar por AgendaDAO quando a agenda for persistida
 
-    public AgendaFacade(CadastroDAO cadastroDAO, TarefaDAO tarefaDAO) {
+    public AgendaFacade(CadastroDAO cadastroDAO, TarefaDAOMemoria tarefaDAO) {
         this.cadastroDAO = cadastroDAO;
         this.tarefaDAO = tarefaDAO;
     }

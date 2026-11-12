@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package view;
 
 import command.AtualizarCadastroComando;
@@ -14,7 +10,7 @@ import command.ListarCadastrosComando;
 import command.Menu;
 import command.MostrarAgendaComando;
 import dao.CadastroDAO;
-import dao.TarefaDAO;
+import dao.TarefaDAOMemoria;
 import facade.AgendaFacade;
 import java.util.Scanner;
 
@@ -28,7 +24,7 @@ public class main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         LeitorConsole leitor = new LeitorConsole(sc);
-        AgendaFacade facade = new AgendaFacade(new CadastroDAO(), new TarefaDAO());
+        AgendaFacade facade = new AgendaFacade(new CadastroDAO(), new TarefaDAOMemoria());
 
         Menu menu = new Menu();
         menu.registrar(1, "Cadastrar usuario/pessoa/remedio", new CadastrarComando(leitor, facade));
