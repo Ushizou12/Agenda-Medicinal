@@ -1,5 +1,8 @@
 package model;
 
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import java.time.LocalDate;
 import java.util.Objects;
 
@@ -12,6 +15,10 @@ import java.util.Objects;
  */
 public class Remedio {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
     private String nome;
     private String descricao;
     private int qtdPilulasAtual;
@@ -19,6 +26,8 @@ public class Remedio {
     private LocalDate dataFinalMedicacao;
     private double preco;
     private int pilulasPorDia;
+
+    protected Remedio() { }
 
     /**
      * Cria um novo remédio, validando todos os campos e calculando
@@ -69,7 +78,23 @@ public class Remedio {
             qtdPilulasAtual -= pilulasPorDia;
         }
     }
-
+    
+    /**
+     * @return o id do remédio
+     */
+    public Long getId() {
+        return id;
+    }
+    
+    /**
+     * Define o id do remedio.
+     *
+     * @param id id do remedio;
+     */
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
     /**
      * @return o nome do remédio
      */
