@@ -6,6 +6,13 @@ package model;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
 
 /**
  * Representa uma tarefa a ser cumprida, com prazo, categoria e prioridade (de 1
@@ -13,15 +20,25 @@ import java.util.Objects;
  *
  * @author 2025001861
  */
+@Entity
 public class Tarefa implements Comparable<Tarefa> {
-
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
     private String nome;
     private String descricao;
     private LocalDateTime dataLimite;
+    
+    @Enumerated(EnumType.STRING)
     private Categoria categoria;
+    
     private int prioridade;
     private boolean concluida;
-
+    
+    protected Tarefa() { }
+    
     /**
      * Cria uma nova tarefa, validando nome, data limite, categoria e
      * prioridade.
@@ -42,10 +59,19 @@ public class Tarefa implements Comparable<Tarefa> {
         setPrioridade(builder.prioridade);
         this.concluida = builder.concluida;
     }
-
+    
+    /**
+     * @return o id da tarefa
+     */
+    
+    public Long getId() {
+        return id;
+    }
+    
     /**
      * @return o nome da tarefa
      */
+    
     public String getNome() {
         return nome;
     }
