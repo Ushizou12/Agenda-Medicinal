@@ -1,5 +1,6 @@
 package model;
 
+import jakarta.persistence.Embeddable;
 import java.util.Objects;
 
 /**
@@ -8,13 +9,16 @@ import java.util.Objects;
  * nenhum valor inconsistente (negativo ou nulo) seja armazenado.
  * @author Ushizou
  */
+@Embeddable
 public class Pessoa {
 
     private String nome;
     private int idade;
     private double altura;
     private double peso;
-
+    
+    protected Pessoa () { }
+    
     /**
      * Cria uma nova pessoa já validando todos os campos.
      *

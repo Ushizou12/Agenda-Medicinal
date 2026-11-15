@@ -1,5 +1,6 @@
 package model;
 
+import jakarta.persistence.Embeddable;
 import java.util.Objects;
 
 /**
@@ -9,12 +10,15 @@ import java.util.Objects;
  * um estado consistente.
  * @author Ushizou
  */
+@Embeddable
 public class Usuario {
 
     private String nome;
     private String email;
     private String senha;
-
+    
+    protected Usuario () { }
+    
     /**
      * Cria um novo usuário já validando nome, email e senha.
      *
