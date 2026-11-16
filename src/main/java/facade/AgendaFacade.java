@@ -1,6 +1,6 @@
 package facade;
 
-import dao.CadastroDAO;
+import dao.CadastroDAOMemoria;
 import dao.TarefaDAO;
 import dto.CadastroDTO;
 import dto.RemedioDTO;
@@ -22,11 +22,11 @@ import model.Usuario;
 
 public class AgendaFacade {
 
-    private final CadastroDAO cadastroDAO;
+    private final CadastroDAOMemoria cadastroDAO;
     private final TarefaDAO tarefaDAO;
     private Agenda agendaAtual; // TODO: trocar por AgendaDAO quando a agenda for persistida
 
-    public AgendaFacade(CadastroDAO cadastroDAO, TarefaDAO tarefaDAO) {
+    public AgendaFacade(CadastroDAOMemoria cadastroDAO, TarefaDAO tarefaDAO) {
         this.cadastroDAO = cadastroDAO;
         this.tarefaDAO = tarefaDAO;
     }
