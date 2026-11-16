@@ -67,6 +67,13 @@ public class Cadastro {
     }
 
     /**
+     * @return o id do cadastro
+     */
+    public Long getId() {
+        return id;
+    }
+    
+    /**
      * @return os dados pessoais do cadastro
      */
     public Pessoa getPessoa() {
@@ -109,7 +116,16 @@ public class Cadastro {
     public boolean removerRemedio(Remedio remedio) {
         return remedios.remove(remedio);
     }
-
+    
+    /**
+     * Define o id do cadastro.
+     *
+     * @param id id do cadastro;
+     */
+    public void setId(Long id) {
+        this.id = id;
+    }
+    
     /**
      * Define (ou substitui) o primeiro remédio da lista. Se a lista estiver
      * vazia, o remédio é adicionado; caso contrário, substitui o remédio na

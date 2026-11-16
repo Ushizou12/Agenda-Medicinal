@@ -4,7 +4,7 @@
  */
 package dao;
 
-import java.util.HashSet;
+import java.util.Collection;
 import model.Cadastro;
 
 /**
@@ -17,5 +17,5 @@ public interface CadastroDAO extends OperacoesDAO<Cadastro>{
     
     public boolean update(String nomeAntigo, Cadastro c);
     
-    public HashSet<Cadastro> getDados();
+    public Collection<Cadastro> getDados();
 }
