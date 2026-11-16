@@ -2,7 +2,7 @@ package dao;
 
 import exception.RegraException;
 import jakarta.persistence.EntityManager;
-import java.util.HashSet;
+import java.util.Collection;
 import model.Cadastro;
 
 /**
@@ -69,7 +69,7 @@ public class CadastroDAOJpa extends GenericJpaDAO<Cadastro> implements CadastroD
             throw new RegraException("Cadastro nao pode ser nulo.");
         }
         return emTransacao(em -> {
-            Cadastro existente = buscarPorUsuario(em, novo.getUsuario().getNome());
+            Cadastro existente = buscarPorUsuario(em, nomeAntigo);
             if (existente == null) {
                 return false;
             }
@@ -88,12 +88,12 @@ public class CadastroDAOJpa extends GenericJpaDAO<Cadastro> implements CadastroD
     }
     
     @Override
-    public HashSet<Cadastro> getDados() {
-        return (HashSet<Cadastro>) listar();
+    public Collection<Cadastro> getDados() {
+        return listar();
     }
 
     private Cadastro buscarPorUsuario(EntityManager em, String nome) {
-        return em.createQuery("SELECT c FROM Cadastro c WHERE c.nome = :nome", Cadastro.class)
+        return em.createQuery("SELECT c FROM Cadastro c WHERE c.usuario.nome = :nome", Cadastro.class)
                 .setParameter("nome", nome)
                 .getResultStream().findFirst().orElse(null);
     }
