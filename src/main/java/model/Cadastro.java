@@ -1,40 +1,54 @@
 package model;
 
+import jakarta.persistence.AttributeOverride;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.OneToMany;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 /**
- * Representa o cadastro completo de um usuário do sistema, agrupando
- * seus dados pessoais ({@link Pessoa}), suas credenciais ({@link Usuario})
- * e a lista de remédios em uso.
+ * Representa o cadastro completo de um usuário do sistema, agrupando seus dados
+ * pessoais ({@link Pessoa}), suas credenciais ({@link Usuario}) e a lista de
+ * remédios em uso.
+ *
  * @author Ushizou
  */
 @Entity
 public class Cadastro {
-    
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
+
     @Embedded
+    @AttributeOverride(name = "nome", column = @Column(name = "nome_pessoa"))
     private Pessoa pessoa;
-    
+
     @Embedded
+    @AttributeOverride(name = "nome", column = @Column(name = "nome_usuario", unique = true))
     private Usuario usuario;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinColumn(name = "cadastro_id")
     private List<Remedio> remedios;
-    
-    protected Cadastro () { this.remedios = new ArrayList<>(); }
-    
+
+    protected Cadastro() {
+        this.remedios = new ArrayList<>();
+    }
+
     /**
      * Cria um novo cadastro com um primeiro remédio já vinculado.
      *
-     * @param pessoa  dados pessoais; não pode ser nulo
+     * @param pessoa dados pessoais; não pode ser nulo
      * @param usuario credenciais do usuário; não pode ser nulo
      * @param remedio primeiro remédio a cadastrar; não pode ser nulo
      * @throws IllegalArgumentException se algum dos parâmetros for nulo
@@ -85,7 +99,7 @@ public class Cadastro {
         }
         remedios.add(remedio);
     }
-    
+
     /**
      * Remove um remédio da lista de remédios do cadastro.
      *
@@ -97,9 +111,9 @@ public class Cadastro {
     }
 
     /**
-     * Define (ou substitui) o primeiro remédio da lista. Se a lista
-     * estiver vazia, o remédio é adicionado; caso contrário, substitui
-     * o remédio na posição 0.
+     * Define (ou substitui) o primeiro remédio da lista. Se a lista estiver
+     * vazia, o remédio é adicionado; caso contrário, substitui o remédio na
+     * posição 0.
      *
      * @param remedio remédio a definir; não pode ser nulo
      * @throws IllegalArgumentException se {@code remedio} for nulo
@@ -136,7 +150,7 @@ public class Cadastro {
             return false;
         }
         final Cadastro other = (Cadastro) obj;
-        
+
         if (!Objects.equals(this.pessoa, other.pessoa)) {
             return false;
         }

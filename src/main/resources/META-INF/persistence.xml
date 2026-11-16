@@ -4,6 +4,7 @@
     <class>model.Remedio</class>
     <class>model.Pessoa</class>
     <class>model.Usuario</class>
+    <class>model.Cadastro</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
 
     <properties>
