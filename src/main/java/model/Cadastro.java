@@ -1,5 +1,10 @@
 package model;
 
+import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -10,12 +15,22 @@ import java.util.Objects;
  * e a lista de remédios em uso.
  * @author Ushizou
  */
+@Entity
 public class Cadastro {
-
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Embedded
     private Pessoa pessoa;
+    
+    @Embedded
     private Usuario usuario;
     private List<Remedio> remedios;
-
+    
+    protected Cadastro () { this.remedios = new ArrayList<>(); }
+    
     /**
      * Cria um novo cadastro com um primeiro remédio já vinculado.
      *
