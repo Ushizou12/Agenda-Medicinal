@@ -1,5 +1,10 @@
 package model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -9,15 +14,28 @@ import java.util.Objects;
  *
  * @author Ushizou
  */
-public class Agenda {
 
+@Entity
+public class Agenda {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
     private LocalDateTime data;
     private String nome;
     private String descricao;
+    
+    @ManyToOne
     private Remedio remedio;
+    
+    @ManyToOne
     private Tarefa tarefa;
+    
     private boolean concluida;
-
+    
+    protected Agenda() { }
+    
     // Construtor focado em remedio.
     /**
      * Cria um item de agenda focado em um remédio.

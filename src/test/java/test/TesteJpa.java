@@ -1,4 +1,4 @@
-package view;
+package test;
 
 import dao.JPAUtil;
 import dao.TarefaDAOJpa;
