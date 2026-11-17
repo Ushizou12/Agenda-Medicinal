@@ -5,6 +5,7 @@
     <class>model.Pessoa</class>
     <class>model.Usuario</class>
     <class>model.Cadastro</class>
+    <class>model.Agenda</class>
     <exclude-unlisted-classes>true</exclude-unlisted-classes>
 
     <properties>

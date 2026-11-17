@@ -9,7 +9,7 @@ import command.GerenciarRemediosComando;
 import command.ListarCadastrosComando;
 import command.Menu;
 import command.MostrarAgendaComando;
-import dao.CadastroDAOMemoria;
+import dao.CadastroDAOJpa;
 import dao.TarefaDAOJpa;
 import dao.JPAUtil;
 import facade.AgendaFacade;
@@ -25,7 +25,7 @@ public class Main {
     public static void main(String[] args) {
         Scanner sc = new Scanner(System.in);
         LeitorConsole leitor = new LeitorConsole(sc);
-        AgendaFacade facade = new AgendaFacade(new CadastroDAOMemoria(), new TarefaDAOJpa());
+        AgendaFacade facade = new AgendaFacade(new CadastroDAOJpa(), new TarefaDAOJpa());
 
         Menu menu = new Menu();
         menu.registrar(1, "Cadastrar usuario/pessoa/remedio", new CadastrarComando(leitor, facade));

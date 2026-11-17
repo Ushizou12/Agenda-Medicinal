@@ -1,6 +1,6 @@
 package facade;
 
-import dao.CadastroDAOMemoria;
+import dao.CadastroDAO;
 import dao.TarefaDAO;
 import dto.CadastroDTO;
 import dto.RemedioDTO;
@@ -22,11 +22,11 @@ import model.Usuario;
 
 public class AgendaFacade {
 
-    private final CadastroDAOMemoria cadastroDAO;
+    private final CadastroDAO cadastroDAO;
     private final TarefaDAO tarefaDAO;
     private Agenda agendaAtual; // TODO: trocar por AgendaDAO quando a agenda for persistida
 
-    public AgendaFacade(CadastroDAOMemoria cadastroDAO, TarefaDAO tarefaDAO) {
+    public AgendaFacade(CadastroDAO cadastroDAO, TarefaDAO tarefaDAO) {
         this.cadastroDAO = cadastroDAO;
         this.tarefaDAO = tarefaDAO;
     }
@@ -163,9 +163,8 @@ public class AgendaFacade {
      * novo. Com JDBC este cuidado deixa de ser necessario.
      */
     private void alterar(Cadastro cadastro, Consumer<Cadastro> mudanca) {
-        cadastroDAO.remove(cadastro);
         mudanca.accept(cadastro);
-        cadastroDAO.add(cadastro);
+        cadastroDAO.update(cadastro);
     }
 
     // ---- DTO -> entidade (usa os Builders) ----
