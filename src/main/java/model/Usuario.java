@@ -2,6 +2,7 @@ package model;
 
 import jakarta.persistence.Embeddable;
 import java.util.Objects;
+import util.SenhaHash;
 
 /**
  * Representa o usuário do sistema, responsável pelo login e identificação
@@ -60,7 +61,9 @@ public class Usuario {
     }
 
     /**
-     * Define a senha do usuário, validando seu tamanho mínimo.
+     * Define a senha do usuário, validando seu tamanho mínimo. A senha informada
+     * é validada em texto puro, mas o que fica guardado é apenas o seu hash
+     * (PBKDF2 com salt, veja {@link SenhaHash}).
      *
      * @param senha senha a ser definida; deve ter no mínimo 6 caracteres
      * @throws IllegalArgumentException se a senha for inválida
@@ -69,7 +72,7 @@ public class Usuario {
         if (!validarSenha(senha)) {
             throw new IllegalArgumentException("Senha invalida");
         }
-        this.senha = senha;
+        this.senha = SenhaHash.gerar(senha); // a senha em texto puro nunca e guardada
     }
 
     /**
@@ -87,7 +90,7 @@ public class Usuario {
     }
 
     /**
-     * @return a senha do usuário
+     * @return o hash da senha do usuário (a senha original não pode ser recuperada)
      */
     public String getSenha() {
         return senha;
@@ -118,7 +121,6 @@ public class Usuario {
         int hash = 5;
         hash = 29 * hash + Objects.hashCode(this.nome);
         hash = 29 * hash + Objects.hashCode(this.email);
-        hash = 29 * hash + Objects.hashCode(this.senha);
         return hash;
     }
 
@@ -137,10 +139,7 @@ public class Usuario {
         if (!Objects.equals(this.nome, other.nome)) {
             return false;
         }
-        if (!Objects.equals(this.email, other.email)) {
-            return false;
-        }
-        return Objects.equals(this.senha, other.senha);
+        return Objects.equals(this.email, other.email);
     }
 
     @Override
@@ -149,8 +148,8 @@ public class Usuario {
            Usuario:
             Nome : %s
             Email: %s
-            Senha: %s
-           """.formatted(nome, email, senha);
+            Senha: ********
+           """.formatted(nome, email);
     }
 
 }

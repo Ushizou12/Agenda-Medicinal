@@ -1,6 +1,6 @@
 package test;
 
-import dao.JPAUtil;
+import util.JPAUtil;
 import dao.TarefaDAOJpa;
 import java.time.LocalDateTime;
 import model.Categoria;

@@ -1,16 +1,15 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package command;
+
+import dto.AgendaDTO;
 import facade.AgendaFacade;
+import java.util.List;
+import view.AgendaView;
 
 /**
+ * Opcao 5 - lista todas as agendas, ordenadas por data.
  *
  * @author mathe
  */
-
-/** Opcao 5 - mostra a agenda criada mais recentemente. */
 public class MostrarAgendaComando implements Comando {
 
     private final AgendaFacade facade;
@@ -21,9 +20,13 @@ public class MostrarAgendaComando implements Comando {
 
     @Override
     public void executar() {
-        System.out.println("\n=== AGENDA ATUAL ===");
-        facade.mostrarAgendaAtual().ifPresentOrElse(
-                System.out::println,
-                () -> System.out.println("Nenhuma agenda foi criada ainda."));
+        System.out.println("\n=== AGENDAS (ordenadas por data) ===");
+        List<AgendaDTO> agendas = facade.listarAgendas();
+
+        if (agendas.isEmpty()) {
+            System.out.println("Nenhuma agenda foi criada ainda.");
+            return;
+        }
+        agendas.forEach(a -> System.out.println(AgendaView.formatar(a)));
     }
 }

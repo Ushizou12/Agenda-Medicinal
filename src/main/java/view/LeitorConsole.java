@@ -131,7 +131,7 @@ public class LeitorConsole {
         LocalDate inicio = lerData("Data de inicio da medicacao:");
         double preco = lerDoubleNaoNegativo("Preco do remedio: ");
         int pilulasPorDia = lerIntNaoNegativo("Pilulas por dia: ");
-        return new RemedioDTO(nome, descricao, qtd, inicio, preco, pilulasPorDia);
+        return new RemedioDTO(null, nome, descricao, qtd, inicio, preco, pilulasPorDia);
     }
 
     public TarefaDTO lerTarefa() {
@@ -141,7 +141,7 @@ public class LeitorConsole {
         Categoria categoria = lerCategoria("Escolha a categoria:");
         int prioridade = lerPrioridade();
         boolean concluida = lerSimNao("Tarefa concluida? (s/n): ");
-        return new TarefaDTO(titulo, descricao, dataHora, categoria, prioridade, concluida);
+        return new TarefaDTO(null, titulo, descricao, dataHora, categoria, prioridade, concluida);
     }
 
     /**

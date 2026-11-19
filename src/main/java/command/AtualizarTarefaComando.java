@@ -1,19 +1,16 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package command;
+
 import dto.TarefaDTO;
 import facade.AgendaFacade;
 import java.util.List;
 import view.LeitorConsole;
 
 /**
+ * Opcao 8 - atualiza uma tarefa existente. A tarefa e escolhida pelo numero
+ * na lista (e atualizada pelo id), entao nomes repetidos nao causam confusao.
  *
  * @author mathe
  */
-
-/** Opcao 8 - atualiza uma tarefa existente (localizada pelo nome). */
 public class AtualizarTarefaComando implements Comando {
 
     private final LeitorConsole leitor;
@@ -35,19 +32,16 @@ public class AtualizarTarefaComando implements Comando {
         }
 
         System.out.println("\nTarefas cadastradas (por prioridade):");
-        tarefas.forEach(t -> System.out.println("- " + t.nome() + " (prioridade " + t.prioridade() + ")"));
-
-        String nomeAtual = leitor.lerTexto("Nome atual da tarefa: ");
-        boolean existe = tarefas.stream().anyMatch(t -> t.nome().equals(nomeAtual));
-        if (!existe) {
-            System.out.println("Tarefa nao encontrada.");
-            return;
-        }
+        leitor.exibirOpcoes(tarefas.stream()
+                .map(t -> t.nome() + " (prioridade " + t.prioridade() + ")")
+                .toList());
+        int indice = leitor.lerIndice("Escolha o numero da tarefa: ", tarefas.size());
+        TarefaDTO escolhida = tarefas.get(indice);
 
         System.out.println("Informe os novos dados:");
         TarefaDTO nova = leitor.lerTarefa();
 
-        System.out.println(facade.atualizarTarefa(nomeAtual, nova)
+        System.out.println(facade.atualizarTarefa(escolhida.id(), nova)
                 ? "Tarefa atualizada com sucesso!"
                 : "Nao foi possivel atualizar a tarefa.");
     }

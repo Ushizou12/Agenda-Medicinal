@@ -53,8 +53,10 @@ public class AtualizarCadastroComando implements Comando {
             System.out.println("\nRemedios cadastrados:");
             leitor.exibirOpcoes(remedios.stream().map(RemedioDTO::nome).toList());
             int indice = leitor.lerIndice("Escolha o numero do remedio: ", remedios.size());
-            remedios.set(indice, leitor.lerRemedio());
+            RemedioDTO original = remedios.get(indice);
+            // mantem o id: assim o remedio e atualizado no lugar, sem perder o vinculo das agendas
+            remedios.set(indice, leitor.lerRemedio().comId(original.id()));
         }
         return remedios;
     }
-}
+}

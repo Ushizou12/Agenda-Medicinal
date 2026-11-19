@@ -56,4 +56,4 @@ public class GerenciarRemediosComando implements Comando {
         String nome = facade.removerRemedio(usuario, indice);
         System.out.println("Remedio '" + nome + "' removido com sucesso!");
     }
-}
+}

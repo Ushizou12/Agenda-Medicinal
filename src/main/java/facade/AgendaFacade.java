@@ -1,7 +1,9 @@
 package facade;
 
+import dao.AgendaDAO;
 import dao.CadastroDAO;
 import dao.TarefaDAO;
+import dto.AgendaDTO;
 import dto.CadastroDTO;
 import dto.RemedioDTO;
 import dto.TarefaDTO;
@@ -15,20 +17,23 @@ import model.Pessoa;
 import model.Remedio;
 import model.Tarefa;
 import model.Usuario;
+
 /**
+ * Fachada do sistema: a view (comandos) so conversa com esta classe, que por
+ * sua vez usa os DAOs e converte entre DTOs e entidades.
  *
  * @author mathe
  */
-
 public class AgendaFacade {
 
     private final CadastroDAO cadastroDAO;
     private final TarefaDAO tarefaDAO;
-    private Agenda agendaAtual; // TODO: trocar por AgendaDAO quando a agenda for persistida
+    private final AgendaDAO agendaDAO;
 
-    public AgendaFacade(CadastroDAO cadastroDAO, TarefaDAO tarefaDAO) {
+    public AgendaFacade(CadastroDAO cadastroDAO, TarefaDAO tarefaDAO, AgendaDAO agendaDAO) {
         this.cadastroDAO = cadastroDAO;
         this.tarefaDAO = tarefaDAO;
+        this.agendaDAO = agendaDAO;
     }
 
     // =====================  CADASTRO  =====================
@@ -84,7 +89,12 @@ public class AgendaFacade {
         alterar(buscarOuFalhar(nomeUsuario), c -> c.adicionarRemedio(novo));
     }
 
-    /** @return o nome do remedio removido */
+    /**
+     * Remove um remedio do usuario. As agendas que apontavam para ele nao sao
+     * apagadas: o banco apenas tira o vinculo (remedio_id = NULL).
+     *
+     * @return o nome do remedio removido
+     */
     public String removerRemedio(String nomeUsuario, int indice) {
         Cadastro cadastro = buscarOuFalhar(nomeUsuario);
         if (indice < 0 || indice >= cadastro.getRemedios().size()) {
@@ -95,7 +105,7 @@ public class AgendaFacade {
         return removido.getNome();
     }
 
-    // =====================  TAREFAS / AGENDA  =====================
+    // =====================  TAREFAS  =====================
     /** Tarefas ordenadas por prioridade (Tarefa implementa Comparable). */
     public List<TarefaDTO> listarTarefas() {
         return tarefaDAO.getDados().stream()
@@ -104,48 +114,54 @@ public class AgendaFacade {
                 .toList();
     }
 
-    public boolean atualizarTarefa(String nomeAntigo, TarefaDTO dto) {
-        Tarefa antiga = tarefaDAO.acharPorNome(nomeAntigo);
-        Tarefa nova = toTarefa(dto);
-
-        boolean atualizou = tarefaDAO.update(nomeAntigo, nova);
-
-        // O DAO substitui a tarefa por um objeto novo; se a agenda atual apontava
-        // para a antiga, religa para a nova (senao ela continuaria mostrando o titulo velho).
-        if (atualizou && agendaAtual != null && antiga != null
-                && antiga.equals(agendaAtual.getTarefa())) {
-            agendaAtual.setTarefa(nova);
-        }
-        return atualizou;
+    /**
+     * Atualiza a tarefa de id informado. O id nao muda, entao as agendas que
+     * apontam para a tarefa continuam apontando para ela.
+     *
+     * @return {@code true} se a tarefa existia e foi atualizada
+     */
+    public boolean atualizarTarefa(Long id, TarefaDTO dto) {
+        return tarefaDAO.update(id, toTarefa(dto));
     }
 
+    // =====================  AGENDA  =====================
     /**
-     * Cria a tarefa e a agenda vinculando o remedio escolhido.
+     * Cria a agenda (e a tarefa vinculada) numa unica gravacao.
      *
-     * @return texto da agenda criada
+     * @param nomeUsuario dono do remedio; so e usado se {@code dto.remedio()}
+     * for informado (pode ser {@code null} numa agenda sem remedio)
+     * @param dto dados da agenda; {@code dto.remedio()} so precisa do id
+     * @return a agenda criada, ja com o id gerado
      */
-    public String criarAgenda(String nomeUsuario, int indiceRemedio, TarefaDTO tarefaDTO,
-            String tituloAgenda, String descricaoAgenda, boolean concluida) {
-
-        List<Remedio> remedios = buscarOuFalhar(nomeUsuario).getRemedios();
-        if (indiceRemedio < 0 || indiceRemedio >= remedios.size()) {
-            throw new RegraException("Remedio invalido.");
+    public AgendaDTO criarAgenda(String nomeUsuario, AgendaDTO dto) {
+        Remedio remedio = null;
+        if (dto.remedio() != null) {
+            remedio = buscarRemedio(nomeUsuario, dto.remedio().id());
         }
+        Tarefa tarefa = (dto.tarefa() != null) ? toTarefa(dto.tarefa()) : null;
 
-        Tarefa tarefa = toTarefa(tarefaDTO);
-        Agenda agenda = new Agenda.Builder(tarefaDTO.dataLimite(), tituloAgenda, descricaoAgenda)
-                .remedio(remedios.get(indiceRemedio))
+        Agenda agenda = new Agenda.Builder(dto.data(), dto.nome(), dto.descricao())
+                .remedio(remedio)
                 .tarefa(tarefa)
-                .concluida(concluida)
+                .concluida(dto.concluida())
                 .buildComTarefa();
 
-        tarefaDAO.add(tarefa);   // so persiste depois que a agenda foi validada
-        agendaAtual = agenda;
-        return agenda.toString();
+        agendaDAO.add(agenda);   // o cascade PERSIST salva a tarefa junto
+        return toAgendaDTO(agenda);
     }
 
-    public Optional<String> mostrarAgendaAtual() {
-        return Optional.ofNullable(agendaAtual).map(Agenda::toString);
+    /** Todas as agendas, da data mais antiga para a mais recente. */
+    public List<AgendaDTO> listarAgendas() {
+        return agendaDAO.listarPorData().stream()
+                .map(this::toAgendaDTO)
+                .toList();
+    }
+
+    /** Remove a agenda. A tarefa vinculada (se houver) e mantida. */
+    public void removerAgenda(Long id) {
+        if (!agendaDAO.removerPorId(id)) {
+            throw new RegraException("Agenda nao encontrada.");
+        }
     }
 
     // =====================  PRIVADOS  =====================
@@ -157,10 +173,19 @@ public class AgendaFacade {
         return cadastro;
     }
 
+    private Remedio buscarRemedio(String nomeUsuario, Long remedioId) {
+        if (nomeUsuario == null || remedioId == null) {
+            throw new RegraException("Informe o usuario e o remedio.");
+        }
+        return buscarOuFalhar(nomeUsuario).getRemedios().stream()
+                .filter(r -> remedioId.equals(r.getId()))
+                .findFirst()
+                .orElseThrow(() -> new RegraException("Remedio invalido."));
+    }
+
     /**
-     * Cadastro esta num HashSet e seu hashCode depende da lista de remedios.
-     * Por isso: remove ANTES de mudar (hash ainda valido), muda, e adiciona de
-     * novo. Com JDBC este cuidado deixa de ser necessario.
+     * O cadastro vem do DAO ja com id (e com os remedios carregados). Aplica a
+     * mudanca no objeto e manda o DAO atualizar a linha (merge).
      */
     private void alterar(Cadastro cadastro, Consumer<Cadastro> mudanca) {
         mudanca.accept(cadastro);
@@ -179,7 +204,7 @@ public class AgendaFacade {
     }
 
     private Remedio toRemedio(RemedioDTO dto) {
-        return new Remedio.Builder()
+        Remedio remedio = new Remedio.Builder()
                 .nome(dto.nome())
                 .descricao(dto.descricao())
                 .qtdPilulasAtual(dto.qtdPilulasAtual())
@@ -187,10 +212,14 @@ public class AgendaFacade {
                 .preco(dto.preco())
                 .pilulasPorDia(dto.pilulasPorDia())
                 .build();
+        if (dto.id() != null) {
+            remedio.setId(dto.id());   // remedio ja existente: sera atualizado, nao recriado
+        }
+        return remedio;
     }
 
     private Tarefa toTarefa(TarefaDTO dto) {
-        return new Tarefa.Builder()
+        Tarefa tarefa = new Tarefa.Builder()
                 .nome(dto.nome())
                 .descricao(dto.descricao())
                 .dataLimite(dto.dataLimite())
@@ -198,6 +227,10 @@ public class AgendaFacade {
                 .prioridade(dto.prioridade())
                 .concluida(dto.concluida())
                 .build();
+        if (dto.id() != null) {
+            tarefa.setId(dto.id());
+        }
+        return tarefa;
     }
 
     // ---- entidade -> DTO ----
@@ -205,7 +238,7 @@ public class AgendaFacade {
         return new CadastroDTO(
                 c.getUsuario().getNome(),
                 c.getUsuario().getEmail(),
-                c.getUsuario().getSenha(),
+                c.getUsuario().getSenha(),   // ja e o HASH da senha, nunca o texto original
                 c.getPessoa().getNome(),
                 c.getPessoa().getIdade(),
                 c.getPessoa().getAltura(),
@@ -214,12 +247,24 @@ public class AgendaFacade {
     }
 
     private RemedioDTO toRemedioDTO(Remedio r) {
-        return new RemedioDTO(r.getNome(), r.getDescricao(), r.getQtdPilulasAtual(),
+        return new RemedioDTO(r.getId(), r.getNome(), r.getDescricao(), r.getQtdPilulasAtual(),
                 r.getDataInicioMedicacao(), r.getPreco(), r.getPilulasPorDia());
     }
 
     private TarefaDTO toTarefaDTO(Tarefa t) {
-        return new TarefaDTO(t.getNome(), t.getDescricao(), t.getDataLimite(),
+        return new TarefaDTO(t.getId(), t.getNome(), t.getDescricao(), t.getDataLimite(),
                 t.getCategoria(), t.getPrioridade(), t.isConcluida());
+    }
+
+    private AgendaDTO toAgendaDTO(Agenda a) {
+        return new AgendaDTO(
+                a.getId(),
+                a.getData(),
+                a.getNome(),
+                a.getDescricao(),
+                a.isConcluida(),
+                a.getRemedio() != null ? toRemedioDTO(a.getRemedio()) : null,
+                a.getStatusRemedio(),
+                a.getTarefa() != null ? toTarefaDTO(a.getTarefa()) : null);
     }
 }

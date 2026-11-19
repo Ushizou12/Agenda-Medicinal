@@ -1,14 +1,10 @@
 package dao;
 
 import exception.RegraException;
-import jakarta.persistence.EntityManager;
 import java.util.Collection;
 import model.Tarefa;
-/**
- *
- * @author Ushizou
- */
-public class TarefaDAOJpa extends GenericJpaDAO<Tarefa> implements TarefaDAO{
+
+public class TarefaDAOJpa extends GenericJpaDAO<Tarefa> implements TarefaDAO {
 
     public TarefaDAOJpa() {
         super(Tarefa.class);
@@ -31,16 +27,7 @@ public class TarefaDAOJpa extends GenericJpaDAO<Tarefa> implements TarefaDAO{
         if (t == null) {
             throw new RegraException("Tarefa nao pode ser nula.");
         }
-        return emTransacao(em -> {
-            Tarefa existente = (t.getId() != null)
-                    ? em.find(Tarefa.class, t.getId())
-                    : buscarPorNome(em, t.getNome());
-            if (existente == null) {
-                return false;
-            }
-            em.remove(existente);
-            return true;
-        });
+        return removerPorId(t.getId());
     }
 
     @Override
@@ -48,7 +35,7 @@ public class TarefaDAOJpa extends GenericJpaDAO<Tarefa> implements TarefaDAO{
         if (t == null) {
             throw new RegraException("Tarefa de busca nao pode ser nula.");
         }
-        return acharPorNome(t.getNome());
+        return buscarPorId(t.getId());
     }
 
     @Override
@@ -56,45 +43,30 @@ public class TarefaDAOJpa extends GenericJpaDAO<Tarefa> implements TarefaDAO{
         if (t == null) {
             throw new RegraException("Tarefa nao pode ser nula.");
         }
-        return update(t.getNome(), t);
+        return update(t.getId(), t);
     }
 
     @Override
-    public boolean update(String nomeAntigo, Tarefa nova) {
-        if (nomeAntigo == null || nomeAntigo.isBlank()) {
-            throw new RegraException("Nome da tarefa para atualizar nao pode ser vazio.");
+    public boolean update(Long id, Tarefa nova) {
+        if (id == null) {
+            throw new RegraException("O id da tarefa nao pode ser nulo.");
         }
         if (nova == null) {
             throw new RegraException("Tarefa nao pode ser nula.");
         }
         return emTransacao(em -> {
-            Tarefa existente = buscarPorNome(em, nomeAntigo);
+            Tarefa existente = em.find(Tarefa.class, id);
             if (existente == null) {
                 return false;
             }
-            nova.setId(existente.getId());   // o DAO resolve o id; o DTO nao precisa dele
+            nova.setId(id);        // mantem o id: o merge atualiza a MESMA linha
             em.merge(nova);
             return true;
         });
     }
 
     @Override
-    public Tarefa acharPorNome(String nome) {
-        if (nome == null || nome.isBlank()) {
-            throw new RegraException("Nome para busca nao pode ser vazio.");
-        }
-        return emTransacao(em -> buscarPorNome(em, nome));
-    }
-
-    @Override
     public Collection<Tarefa> getDados() {
         return listar();
     }
-
-    private Tarefa buscarPorNome(EntityManager em, String nome) {
-        return em.createQuery("SELECT t FROM Tarefa t WHERE t.nome = :nome", Tarefa.class)
-                .setParameter("nome", nome)
-                .getResultStream().findFirst().orElse(null);
-    }
 }
-

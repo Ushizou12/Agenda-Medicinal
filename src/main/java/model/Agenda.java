@@ -1,5 +1,6 @@
 package model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -7,6 +8,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import java.time.LocalDateTime;
 import java.util.Objects;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 /**
  * Representa um item de agenda, que pode estar vinculado a um remédio e,
@@ -26,10 +29,14 @@ public class Agenda {
     private String nome;
     private String descricao;
     
+    // Se o remedio for apagado, a agenda continua existindo, so que sem remedio
+    // (o banco coloca remedio_id = NULL).
     @ManyToOne
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private Remedio remedio;
     
-    @ManyToOne
+    // PERSIST: ao salvar a agenda, a tarefa nova e salva na mesma transacao.
+    @ManyToOne(cascade = CascadeType.PERSIST)
     private Tarefa tarefa;
     
     private boolean concluida;
@@ -74,12 +81,28 @@ public class Agenda {
             this.tarefa = builder.tarefa;
         }
     }
+    
+    /**
+     * @return o id da Agenda
+     */
+    public Long getId() {
+        return id;
+    }
 
     /**
      * @return a data e hora do compromisso
      */
     public LocalDateTime getData() {
         return data;
+    }
+    
+    /**
+     * Define o id da agenda.
+     *
+     * @param id id da agenda;
+     */
+    public void setId(Long id) {
+        this.id = id;
     }
 
     /**
