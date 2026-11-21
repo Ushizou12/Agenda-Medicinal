@@ -7,7 +7,7 @@ import view.AgendaView;
 import view.LeitorConsole;
 
 /**
- * Opcao 9 - remove uma agenda. A tarefa vinculada a ela e mantida.
+ * Opcao 10 - remove uma agenda. A tarefa vinculada a ela e mantida.
  */
 public class RemoverAgendaComando implements Comando {
 

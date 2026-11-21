@@ -8,9 +8,14 @@ import dto.CadastroDTO;
 import dto.RemedioDTO;
 import dto.TarefaDTO;
 import exception.RegraException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.EnumMap;
+import java.util.Map;
+import java.util.stream.Collectors;
+import model.Categoria;
 import model.Agenda;
 import model.Cadastro;
 import model.Pessoa;
@@ -76,6 +81,10 @@ public class AgendaFacade {
             throw new RegraException("Usuario nao encontrado.");
         }
     }
+    
+    public void removerCadastro(String nomeUsuario) {
+        cadastroDAO.remove(buscarOuFalhar(nomeUsuario));
+    }
 
     // =====================  REMEDIOS  =====================
     public List<RemedioDTO> listarRemedios(String nomeUsuario) {
@@ -113,6 +122,22 @@ public class AgendaFacade {
                 .map(this::toTarefaDTO)
                 .toList();
     }
+    
+    /**
+     * Tarefas ordenadas pelo prazo, usando uma classe anonima de Comparator.
+     */
+    public List<TarefaDTO> listarTarefasPorPrazo() {
+        Comparator<TarefaDTO> porPrazo = new Comparator<>() {   // classe anonima
+            @Override
+            public int compare(TarefaDTO a, TarefaDTO b) {
+                return a.dataLimite().compareTo(b.dataLimite());
+            }
+        };
+        return tarefaDAO.getDados().stream()
+                .map(this::toTarefaDTO)
+                .sorted(porPrazo)
+                .toList();
+    }
 
     /**
      * Atualiza a tarefa de id informado. O id nao muda, entao as agendas que
@@ -122,6 +147,18 @@ public class AgendaFacade {
      */
     public boolean atualizarTarefa(Long id, TarefaDTO dto) {
         return tarefaDAO.update(id, toTarefa(dto));
+    }
+    
+    public void removerTarefa(Long id) {
+        boolean emUso = agendaDAO.listarPorData().stream()
+                .map(Agenda::getTarefa)
+                .anyMatch(t -> t != null && id.equals(t.getId()));
+        if (emUso) {
+            throw new RegraException("Tarefa vinculada a uma agenda. Remova a agenda primeiro.");
+        }
+        if (!tarefaDAO.removerPorId(id)) {
+            throw new RegraException("Tarefa nao encontrada.");
+        }
     }
 
     // =====================  AGENDA  =====================
@@ -162,6 +199,46 @@ public class AgendaFacade {
         if (!agendaDAO.removerPorId(id)) {
             throw new RegraException("Agenda nao encontrada.");
         }
+    }
+    
+    /** Atualiza os dados da agenda. */
+    public void atualizarAgenda(Long id, String nome, String descricao, boolean concluida) {
+        Agenda agenda = agendaDAO.buscarPorId(id);
+        if (agenda == null) {
+            throw new RegraException("Agenda nao encontrada.");
+        }
+        agenda.setNome(nome);
+        agenda.setDescricao(descricao);
+        agenda.setConcluida(concluida);
+        agendaDAO.update(agenda);
+    }
+    
+    // =====================  RELATORIOS (wrapper classes)  =====================
+    /**
+     * Remedio que acaba primeiro e em quantos dias (Integer, wrapper).
+     * @param nomeUsuario
+     * @return
+     */
+    public Optional<String> proximoARepor(String nomeUsuario) {
+        return buscarOuFalhar(nomeUsuario).getRemedios().stream()
+                .min(Comparator.comparingInt(
+                        r -> r.getQtdPilulasRestantes() / r.getPilulasPorDia()))
+                .map(r -> {
+                    Integer dias = r.getQtdPilulasRestantes() / r.getPilulasPorDia(); // int -> Integer
+                    return r.getNome() + " acaba em " + dias + " dia(s)";
+                });
+    }
+
+    /**
+     * Quantidade de tarefas por categoria.counting() produz Long (wrapper).
+     * @return 
+     */
+    public Map<Categoria, Long> tarefasPorCategoria() {
+        return tarefaDAO.getDados().stream()
+                .collect(Collectors.groupingBy(
+                        Tarefa::getCategoria,
+                        () -> new EnumMap<>(Categoria.class),
+                        Collectors.counting()));
     }
 
     // =====================  PRIVADOS  =====================

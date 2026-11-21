@@ -1,5 +1,6 @@
 package view;
 
+import command.AtualizarAgendaComando;
 import command.AtualizarCadastroComando;
 import command.AtualizarTarefaComando;
 import command.BuscarCadastroComando;
@@ -10,6 +11,9 @@ import command.ListarCadastrosComando;
 import command.Menu;
 import command.MostrarAgendaComando;
 import command.RemoverAgendaComando;
+import command.RelatoriosComando;
+import command.RemoverCadastroComando;
+
 import dao.AgendaDAOJpa;
 import dao.CadastroDAOJpa;
 import dao.TarefaDAOJpa;
@@ -38,7 +42,10 @@ public class Main {
         menu.registrar(6, "Adicionar ou remover remedios", new GerenciarRemediosComando(leitor, facade));
         menu.registrar(7, "Atualizar cadastro", new AtualizarCadastroComando(leitor, facade));
         menu.registrar(8, "Atualizar tarefa", new AtualizarTarefaComando(leitor, facade));
-        menu.registrar(9, "Remover agenda", new RemoverAgendaComando(leitor, facade));
+        menu.registrar(9, "Atualizar agenda", new AtualizarAgendaComando(leitor, facade));
+        menu.registrar(10, "Remover agenda", new RemoverAgendaComando(leitor, facade));
+        menu.registrar(11, "Remover cadastro", new RemoverCadastroComando(leitor, facade));
+        menu.registrar(12, "Relatorios", new RelatoriosComando(leitor, facade));
         menu.registrar(0, "Sair", () -> System.out.println("Encerrando o programa...")); // lambda
 
         int opcao;

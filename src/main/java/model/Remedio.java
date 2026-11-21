@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 /**
@@ -69,16 +70,6 @@ public class Remedio {
             throw new IllegalArgumentException("Pilulas por dia deve ser maior que zero.");
         }
         return this.qtdPilulasAtual / pilulasPorDia;
-    }
-
-    /**
-     * Consome uma dose diária do remédio, reduzindo o estoque atual. Não faz
-     * nada caso o estoque já esteja zerado.
-     */
-    public void tomarDose() {
-        if (qtdPilulasAtual > 0) {
-            qtdPilulasAtual -= pilulasPorDia;
-        }
     }
     
     /**
@@ -215,14 +206,14 @@ public class Remedio {
      * @return uma mensagem descrevendo o status atual do estoque
      */
     public String getStatusMedicacao() {
-        if (qtdPilulasAtual <= 0) {
+        int restantes = getQtdPilulasRestantes();
+
+        if (restantes <= 0) {
             return "Medicao acabou!";
         }
-
-        if (qtdPilulasAtual <= 5) {
+        if (restantes <= 5) {
             return "Atencao: medicamento acabando!";
         }
-
         return "Estoque normal";
     }
 
@@ -265,6 +256,17 @@ public class Remedio {
             throw new IllegalArgumentException("Pilulas por dia deve ser maior que zero.");
         }
         this.pilulasPorDia = pilulasPorDia;
+    }
+    
+    /**
+     * Pilulas que restam hoje: estoque na data de inicio menos o que ja foi
+     * consumido desde entao. Nao e gravado no banco (o JPA usa os campos, nao
+     * os getters).
+     * @return
+     */
+    public int getQtdPilulasRestantes() {
+        long dias = Math.max(0, ChronoUnit.DAYS.between(dataInicioMedicacao, LocalDate.now()));
+        return (int) Math.max(0, qtdPilulasAtual - dias * pilulasPorDia);
     }
 
     @Override
@@ -329,7 +331,7 @@ public class Remedio {
            """.formatted(
                 nome,
                 descricao,
-                qtdPilulasAtual,
+                getQtdPilulasRestantes(),
                 dataInicioMedicacao,
                 dataFinalMedicacao,
                 preco,
