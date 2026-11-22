@@ -77,7 +77,11 @@ public class AgendaFacade {
         if (mudouNome && cadastroDAO.acharPorUsuario(dto.nomeUsuario()) != null) {
             throw new RegraException("Ja existe um usuario com esse nome.");
         }
-        if (!cadastroDAO.update(nomeAntigo, toCadastro(dto))) {
+        Cadastro atual = buscarOuFalhar(nomeAntigo);
+        Cadastro novo = toCadastro(dto);
+        // O DTO nao traz agendas: sem copiar, o orphanRemoval apagaria todas.
+        novo.copiarAgendasDe(atual);
+        if (!cadastroDAO.update(nomeAntigo, novo)) {
             throw new RegraException("Usuario nao encontrado.");
         }
     }
@@ -140,8 +144,8 @@ public class AgendaFacade {
     }
 
     /**
-     * Atualiza a tarefa de id informado. O id nao muda, entao as agendas que
-     * apontam para a tarefa continuam apontando para ela.
+     * Atualiza a tarefa de id informado. O id nao muda e a tarefa continua
+     * pertencendo a mesma agenda.
      *
      * @return {@code true} se a tarefa existia e foi atualizada
      */
@@ -149,52 +153,85 @@ public class AgendaFacade {
         return tarefaDAO.update(id, toTarefa(dto));
     }
     
-    public void removerTarefa(Long id) {
-        boolean emUso = agendaDAO.listarPorData().stream()
-                .map(Agenda::getTarefa)
-                .anyMatch(t -> t != null && id.equals(t.getId()));
-        if (emUso) {
-            throw new RegraException("Tarefa vinculada a uma agenda. Remova a agenda primeiro.");
+    /**
+     * Retira uma tarefa de uma agenda. A tarefa e apagada do banco (a lista de
+     * tarefas da agenda usa {@code orphanRemoval}).
+     *
+     * @param agendaId id da agenda dona da tarefa
+     * @param tarefaId id da tarefa a remover
+     * @throws RegraException se a agenda nao existir ou a tarefa nao for dela
+     */
+    public void removerTarefa(Long agendaId, Long tarefaId) {
+        Agenda agenda = agendaDAO.buscarPorId(agendaId);
+        if (agenda == null) {
+            throw new RegraException("Agenda nao encontrada.");
         }
-        if (!tarefaDAO.removerPorId(id)) {
-            throw new RegraException("Tarefa nao encontrada.");
+        if (!agenda.removerTarefaPorId(tarefaId)) {
+            throw new RegraException("Essa tarefa nao pertence a agenda informada.");
         }
+        agendaDAO.update(agenda);   // o merge faz o orphanRemoval apagar a tarefa
     }
 
     // =====================  AGENDA  =====================
     /**
-     * Cria a agenda (e a tarefa vinculada) numa unica gravacao.
+     * Cria uma agenda nova DENTRO do cadastro do usuario, ja com as tarefas
+     * informadas, numa unica gravacao.
      *
-     * @param nomeUsuario dono do remedio; so e usado se {@code dto.remedio()}
-     * for informado (pode ser {@code null} numa agenda sem remedio)
-     * @param dto dados da agenda; {@code dto.remedio()} so precisa do id
-     * @return a agenda criada, ja com o id gerado
+     * @param nomeUsuario dono da agenda (obrigatorio: toda agenda pertence a um
+     * cadastro)
+     * @param dto dados da agenda; {@code dto.remedio()} (opcional) so precisa do
+     * id e {@code dto.tarefas()} pode ter zero, uma ou varias tarefas
+     * @return a agenda criada (os ids so sao gerados no banco; para te-los,
+     * liste as agendas de novo)
      */
     public AgendaDTO criarAgenda(String nomeUsuario, AgendaDTO dto) {
+        Cadastro cadastro = buscarOuFalhar(nomeUsuario);
+
         Remedio remedio = null;
         if (dto.remedio() != null) {
-            remedio = buscarRemedio(nomeUsuario, dto.remedio().id());
+            remedio = buscarRemedio(cadastro, dto.remedio().id());
         }
-        Tarefa tarefa = (dto.tarefa() != null) ? toTarefa(dto.tarefa()) : null;
 
-        Agenda agenda = new Agenda.Builder(dto.data(), dto.nome(), dto.descricao())
+        Agenda.Builder builder = new Agenda.Builder(dto.data(), dto.nome(), dto.descricao())
                 .remedio(remedio)
-                .tarefa(tarefa)
-                .concluida(dto.concluida())
-                .buildComTarefa();
+                .concluida(dto.concluida());
+        dto.tarefas().forEach(t -> builder.tarefa(toTarefa(t)));
+        Agenda agenda = builder.build();
 
-        agendaDAO.add(agenda);   // o cascade PERSIST salva a tarefa junto
+        alterar(cadastro, c -> c.adicionarAgenda(agenda));   // cascade salva agenda e tarefas
         return toAgendaDTO(agenda);
     }
 
-    /** Todas as agendas, da data mais antiga para a mais recente. */
+    /**
+     * Vincula uma tarefa nova a uma agenda que ja existe.
+     *
+     * @param agendaId id da agenda que vai receber a tarefa
+     * @param dto dados da tarefa
+     */
+    public void adicionarTarefa(Long agendaId, TarefaDTO dto) {
+        Agenda agenda = agendaDAO.buscarPorId(agendaId);
+        if (agenda == null) {
+            throw new RegraException("Agenda nao encontrada.");
+        }
+        agenda.adicionarTarefa(toTarefa(dto));
+        agendaDAO.update(agenda);   // o cascade MERGE salva a tarefa nova
+    }
+
+    /** Todas as agendas (de todos os usuarios), da data mais antiga para a mais recente. */
     public List<AgendaDTO> listarAgendas() {
         return agendaDAO.listarPorData().stream()
                 .map(this::toAgendaDTO)
                 .toList();
     }
 
-    /** Remove a agenda. A tarefa vinculada (se houver) e mantida. */
+    /** Agendas de um usuario, da data mais antiga para a mais recente. */
+    public List<AgendaDTO> listarAgendas(String nomeUsuario) {
+        return buscarOuFalhar(nomeUsuario).getAgendas().stream()
+                .map(this::toAgendaDTO)
+                .toList();
+    }
+
+    /** Remove a agenda e, em cascata, todas as tarefas dela. */
     public void removerAgenda(Long id) {
         if (!agendaDAO.removerPorId(id)) {
             throw new RegraException("Agenda nao encontrada.");
@@ -250,11 +287,11 @@ public class AgendaFacade {
         return cadastro;
     }
 
-    private Remedio buscarRemedio(String nomeUsuario, Long remedioId) {
-        if (nomeUsuario == null || remedioId == null) {
-            throw new RegraException("Informe o usuario e o remedio.");
+    private Remedio buscarRemedio(Cadastro cadastro, Long remedioId) {
+        if (remedioId == null) {
+            throw new RegraException("Informe o remedio.");
         }
-        return buscarOuFalhar(nomeUsuario).getRemedios().stream()
+        return cadastro.getRemedios().stream()
                 .filter(r -> remedioId.equals(r.getId()))
                 .findFirst()
                 .orElseThrow(() -> new RegraException("Remedio invalido."));
@@ -342,6 +379,6 @@ public class AgendaFacade {
                 a.isConcluida(),
                 a.getRemedio() != null ? toRemedioDTO(a.getRemedio()) : null,
                 a.getStatusRemedio(),
-                a.getTarefa() != null ? toTarefaDTO(a.getTarefa()) : null);
+                a.getTarefas().stream().sorted().map(this::toTarefaDTO).toList());
     }
 }

@@ -15,6 +15,9 @@ public class TarefaDAOJpa extends GenericJpaDAO<Tarefa> implements TarefaDAO {
         if (t == null) {
             throw new RegraException("Tarefa nao pode ser nula.");
         }
+        if (t.getAgenda() == null) {
+            throw new RegraException("Toda tarefa deve pertencer a uma agenda.");
+        }
         emTransacao(em -> {
             em.persist(t);   // persist preenche o id na PROPRIA instancia t
             return null;
@@ -59,8 +62,15 @@ public class TarefaDAOJpa extends GenericJpaDAO<Tarefa> implements TarefaDAO {
             if (existente == null) {
                 return false;
             }
-            nova.setId(id);        // mantem o id: o merge atualiza a MESMA linha
-            em.merge(nova);
+            // Copia os dados para a tarefa gerenciada (em vez de merge da "nova"):
+            // assim a tarefa continua ligada a mesma agenda e a mesma linha e
+            // atualizada.
+            existente.setNome(nova.getNome());
+            existente.setDescricao(nova.getDescricao());
+            existente.setDataLimite(nova.getDataLimite());
+            existente.setCategoria(nova.getCategoria());
+            existente.setPrioridade(nova.getPrioridade());
+            existente.setConcluida(nova.isConcluida());
             return true;
         });
     }

@@ -13,7 +13,7 @@ import view.LeitorConsole;
  */
 
 
-/** Opcao 11 - remove um cadastro inteiro (e seus remedios). */
+/** Opcao 11 - remove um cadastro inteiro (e seus remedios, agendas e tarefas). */
 public class RemoverCadastroComando implements Comando {
 
     private final LeitorConsole leitor;
@@ -28,7 +28,7 @@ public class RemoverCadastroComando implements Comando {
     public void executar() {
         System.out.println("\n=== REMOVER CADASTRO ===");
         String usuario = leitor.lerTexto("Nome do usuario: ");
-        if (!leitor.lerSimNao("Remover '" + usuario + "' e todos os seus remedios? (s/n): ")) {
+        if (!leitor.lerSimNao("Remover '" + usuario + "' e todos os seus remedios, agendas e tarefas? (s/n): ")) {
             System.out.println("Remocao cancelada.");
             return;
         }

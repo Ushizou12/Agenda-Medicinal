@@ -1,6 +1,7 @@
 package dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
  * Dados de uma agenda trocados entre a view e a facade.
@@ -11,7 +12,8 @@ import java.time.LocalDateTime;
  * @param id id da agenda no banco ({@code null} se for nova)
  * @param remedio remédio vinculado, ou {@code null} se a agenda não tem remédio
  * @param statusRemedio texto de status do remédio (preenchido pela facade)
- * @param tarefa tarefa vinculada, ou {@code null} se a agenda não tem tarefa
+ * @param tarefas tarefas da agenda (lista vazia se não tiver nenhuma; nunca
+ * {@code null})
  */
 public record AgendaDTO(
         Long id,
@@ -21,5 +23,9 @@ public record AgendaDTO(
         boolean concluida,
         RemedioDTO remedio,
         String statusRemedio,
-        TarefaDTO tarefa) {
+        List<TarefaDTO> tarefas) {
+
+    public AgendaDTO {
+        tarefas = (tarefas == null) ? List.of() : List.copyOf(tarefas);
+    }
 }

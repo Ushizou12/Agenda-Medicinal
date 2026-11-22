@@ -9,8 +9,11 @@ Agenda médica que facilita o controle de medicamentos e tarefas do dia a dia, p
 - Calcula quando comprar novo remédio baseado na quantidade pílulas que o usuário tem;
 - Cadastro de usuários com validação de e-mail e senha, vinculados a dados pessoais (nome, idade, altura, peso) e cálculo de IMC;
 - Gerenciamento de remédios com controle de quantidade de pílulas, cálculo automático da data final da medicação e alertas de estoque baixo ou esgotado;
-- Agenda de compromissos com data/hora, podendo vincular um remédio e/ou uma tarefa a cada item (o remédio é opcional: se ele for removido, a agenda continua existindo, sem remédio);
-- Listagem das agendas ordenadas por data e remoção de agendas;
+- Cada cadastro tem uma lista de agendas, e cada agenda tem uma lista de tarefas (uma agenda pode ter várias tarefas; cada tarefa pertence a uma única agenda);
+- Agenda de compromissos com data/hora, podendo vincular um remédio (opcional: se ele for removido, a agenda continua existindo, sem remédio);
+- Ao criar uma tarefa, é possível criar uma nova agenda para ela ou vinculá-la a uma agenda já existente;
+- Listagem das agendas ordenadas por data; remover uma agenda remove também as suas tarefas;
+- Remoção de uma tarefa de uma agenda (a tarefa é apagada do banco de dados);
 - Cadastro de tarefas com descrição, categoria (Antibiótico, Suplemento, Uso Contínuo), prioridade (1 a 3) e prazo, com ordenação por prioridade;
 - Busca de cadastros por nome de usuário;
 - Senhas guardadas apenas como hash (PBKDF2 com salt), nunca em texto puro.

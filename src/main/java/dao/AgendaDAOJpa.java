@@ -16,7 +16,7 @@ public class AgendaDAOJpa extends GenericJpaDAO<Agenda> implements AgendaDAO {
             throw new RegraException("Agenda nao pode ser nula.");
         }
         emTransacao(em -> {
-            em.persist(a);   // o cascade PERSIST tambem salva a tarefa nova da agenda
+            em.persist(a);   // o cascade ALL tambem salva as tarefas da agenda
             return null;
         });
         return true;

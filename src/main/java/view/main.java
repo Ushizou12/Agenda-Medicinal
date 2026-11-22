@@ -13,7 +13,7 @@ import command.MostrarAgendaComando;
 import command.RemoverAgendaComando;
 import command.RelatoriosComando;
 import command.RemoverCadastroComando;
-
+import command.RemoverTarefaAgendaComando;
 import dao.AgendaDAOJpa;
 import dao.CadastroDAOJpa;
 import dao.TarefaDAOJpa;
@@ -37,7 +37,7 @@ public class Main {
         menu.registrar(1, "Cadastrar usuario/pessoa/remedio", new CadastrarComando(leitor, facade));
         menu.registrar(2, "Listar cadastros", new ListarCadastrosComando(facade));
         menu.registrar(3, "Buscar cadastro por usuario", new BuscarCadastroComando(leitor, facade));
-        menu.registrar(4, "Criar tarefa e agenda", new CriarTarefaAgendaComando(leitor, facade));
+        menu.registrar(4, "Criar tarefa (em agenda nova ou existente)", new CriarTarefaAgendaComando(leitor, facade));
         menu.registrar(5, "Listar agendas (por data)", new MostrarAgendaComando(facade));
         menu.registrar(6, "Adicionar ou remover remedios", new GerenciarRemediosComando(leitor, facade));
         menu.registrar(7, "Atualizar cadastro", new AtualizarCadastroComando(leitor, facade));
@@ -45,7 +45,8 @@ public class Main {
         menu.registrar(9, "Atualizar agenda", new AtualizarAgendaComando(leitor, facade));
         menu.registrar(10, "Remover agenda", new RemoverAgendaComando(leitor, facade));
         menu.registrar(11, "Remover cadastro", new RemoverCadastroComando(leitor, facade));
-        menu.registrar(12, "Relatorios", new RelatoriosComando(leitor, facade));
+        menu.registrar(12, "Remover tarefa de uma agenda", new RemoverTarefaAgendaComando(leitor, facade));
+        menu.registrar(13, "Relatorios", new RelatoriosComando(leitor, facade));
         menu.registrar(0, "Sair", () -> System.out.println("Encerrando o programa...")); // lambda
 
         int opcao;

@@ -2,18 +2,32 @@ package model;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OrderBy;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 /**
- * Representa um item de agenda, que pode estar vinculado a um remédio e,
- * opcionalmente, a uma tarefa.
+ * Representa um item de agenda, que pode estar vinculado a um remédio e possui
+ * uma lista de tarefas (zero, uma ou várias).
+ *
+ * <p>As tarefas pertencem à agenda: ao remover a agenda, todas as suas tarefas
+ * são removidas junto ({@code cascade = ALL}); ao tirar uma tarefa da lista, ela
+ * é apagada do banco ({@code orphanRemoval = true}).</p>
  *
  * @author Ushizou
  */
@@ -35,25 +49,28 @@ public class Agenda {
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Remedio remedio;
     
-    // PERSIST: ao salvar a agenda, a tarefa nova e salva na mesma transacao.
-    @ManyToOne(cascade = CascadeType.PERSIST)
-    private Tarefa tarefa;
+    // Lado inverso (mappedBy): a chave estrangeira fica em Tarefa.agenda.
+    // ALL: salvar/atualizar/REMOVER a agenda faz o mesmo com as tarefas.
+    // orphanRemoval: tarefa retirada da lista e apagada do banco.
+    // FetchMode.SELECT: evita MultipleBagFetchException (Cadastro ja tem outras
+    // listas EAGER); a lista continua sendo carregada junto com a agenda.
+    @OneToMany(mappedBy = "agenda", cascade = CascadeType.ALL,
+            orphanRemoval = true, fetch = FetchType.EAGER)
+    @Fetch(FetchMode.SELECT)
+    @OrderBy("id")
+    private List<Tarefa> tarefas = new ArrayList<>();
     
     private boolean concluida;
     
     protected Agenda() { }
     
-    // Construtor focado em remedio.
     /**
-     * Cria um item de agenda focado em um remédio.
+     * Cria um item de agenda a partir do {@link Builder}. As tarefas do builder
+     * (se houver) são vinculadas à nova agenda.
      *
-     * @param data data e hora do compromisso; não pode ser nula
-     * @param nome nome do compromisso; não pode ser nulo ou vazio
-     * @param descricao descrição do compromisso
-     * @param remedio remédio vinculado (pode ser {@code null})
-     * @param concluida indica se o compromisso já foi concluído
-     * @throws IllegalArgumentException se {@code data} ou {@code nome} forem
-     * inválidos
+     * @param builder dados da agenda; data e nome não podem ser nulos/vazios
+     * @throws IllegalArgumentException se {@code data}, {@code nome} ou
+     * {@code descricao} forem inválidos
      */
     public Agenda(Builder builder) {
         setData(builder.data);
@@ -61,25 +78,7 @@ public class Agenda {
         setDescricao(builder.descricao);
         this.remedio = builder.remedio;
         this.concluida = builder.concluida;
-    }
-
-    /**
-     * Cria um item de agenda completo, vinculando remédio e tarefa.
-     *
-     * @param data data e hora do compromisso; não pode ser nula
-     * @param nome nome do compromisso; não pode ser nulo ou vazio
-     * @param descricao descrição do compromisso
-     * @param remedio remédio vinculado (pode ser {@code null})
-     * @param tarefa tarefa vinculada (pode ser {@code null})
-     * @param concluida indica se o compromisso já foi concluído
-     * @throws IllegalArgumentException se {@code data} ou {@code nome} forem
-     * inválidos
-     */
-    public Agenda(Builder builder, boolean incluirTarefa) {
-        this(builder);
-        if (incluirTarefa) {
-            this.tarefa = builder.tarefa;
-        }
+        builder.tarefas.forEach(this::adicionarTarefa);
     }
     
     /**
@@ -159,20 +158,48 @@ public class Agenda {
     }
 
     /**
-     * @return a tarefa vinculada a este item de agenda, ou {@code null} se não
-     * houver
+     * @return as tarefas desta agenda (visão somente leitura; para alterar use
+     * {@link #adicionarTarefa(Tarefa)} e {@link #removerTarefaPorId(Long)})
      */
-    public Tarefa getTarefa() {
-        return tarefa;
+    public List<Tarefa> getTarefas() {
+        return Collections.unmodifiableList(tarefas);
     }
 
     /**
-     * Define a tarefa vinculada a este item de agenda.
+     * Adiciona uma tarefa a esta agenda, tornando-a dona da tarefa.
      *
-     * @param tarefa tarefa a vincular (pode ser {@code null})
+     * @param tarefa tarefa a adicionar; não pode ser nula
+     * @throws IllegalArgumentException se {@code tarefa} for nula
      */
-    public void setTarefa(Tarefa tarefa) {
-        this.tarefa = tarefa;
+    public void adicionarTarefa(Tarefa tarefa) {
+        if (tarefa == null) {
+            throw new IllegalArgumentException("Tarefa nao pode ser nula.");
+        }
+        tarefa.setAgenda(this);
+        tarefas.add(tarefa);
+    }
+
+    /**
+     * Remove desta agenda a tarefa de id informado. Como a lista usa
+     * {@code orphanRemoval}, a tarefa é apagada do banco quando a agenda for
+     * salva. A busca é feita pelo id (e não por {@code equals}) porque duas
+     * tarefas diferentes podem ter exatamente os mesmos dados.
+     *
+     * @param id id da tarefa a remover
+     * @return {@code true} se a tarefa estava nesta agenda e foi removida
+     */
+    public boolean removerTarefaPorId(Long id) {
+        if (id == null) {
+            return false;
+        }
+        Iterator<Tarefa> it = tarefas.iterator();
+        while (it.hasNext()) {
+            if (id.equals(it.next().getId())) {
+                it.remove();
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -227,7 +254,6 @@ public class Agenda {
         hash = 89 * hash + Objects.hashCode(this.data);
         hash = 89 * hash + Objects.hashCode(this.nome);
         hash = 89 * hash + Objects.hashCode(this.descricao);
-        hash = 89 * hash + Objects.hashCode(this.tarefa);
         hash = 89 * hash + (this.concluida ? 1 : 0);
         return hash;
     }
@@ -253,10 +279,7 @@ public class Agenda {
         if (!Objects.equals(this.descricao, other.descricao)) {
             return false;
         }
-        if (!Objects.equals(this.data, other.data)) {
-            return false;
-        }
-        return Objects.equals(this.tarefa, other.tarefa);
+        return Objects.equals(this.data, other.data);
     }
 
     @Override
@@ -270,7 +293,7 @@ public class Agenda {
            Descricao         : %s
            Status            : %s
            Remedio Vinculado : %s
-           Tarefa Vinculada  : %s
+           Tarefas           : %s
            ========================================
            """.formatted(
                 nome,
@@ -278,7 +301,8 @@ public class Agenda {
                 descricao,
                 concluida ? "Concluído" : "Pendente",
                 remedio != null ? remedio.getNome() + " - " + remedio.getStatusMedicacao() : "Nenhum",
-                tarefa != null ? tarefa.getNome() : "Nenhuma"
+                tarefas.isEmpty() ? "Nenhuma"
+                        : tarefas.stream().map(Tarefa::getNome).collect(Collectors.joining(", "))
         );
 
     }
@@ -289,7 +313,7 @@ public class Agenda {
         private String nome;
         private String descricao;
         private Remedio remedio;
-        private Tarefa tarefa;
+        private final List<Tarefa> tarefas = new ArrayList<>();
         private boolean concluida;
 
         public Builder(LocalDateTime data, String nome, String descricao) {
@@ -303,8 +327,9 @@ public class Agenda {
             return this;
         }
 
+        /** Acrescenta uma tarefa; pode ser chamado varias vezes. */
         public Builder tarefa(Tarefa tarefa) {
-            this.tarefa = tarefa;
+            this.tarefas.add(tarefa);
             return this;
         }
 
@@ -315,10 +340,6 @@ public class Agenda {
 
         public Agenda build() {
             return new Agenda(this);
-        }
-
-        public Agenda buildComTarefa() {
-            return new Agenda(this, true);
         }
     }
 

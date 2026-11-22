@@ -5,14 +5,22 @@ import java.util.Objects;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 
 /**
  * Representa uma tarefa a ser cumprida, com prazo, categoria e prioridade (de 1
  * a 3). Implementa {@link Comparable} para permitir ordenação por prioridade.
+ *
+ * <p>Toda tarefa pertence a exatamente uma {@link Agenda}: a coluna
+ * {@code agenda_id} é obrigatória e a tarefa só entra no sistema por meio de
+ * {@link Agenda#adicionarTarefa(Tarefa)}. Se a agenda for removida, suas
+ * tarefas também são.</p>
  *
  * @author 2025001861
  */
@@ -32,6 +40,12 @@ public class Tarefa implements Comparable<Tarefa> {
     
     private int prioridade;
     private boolean concluida;
+    
+    // Lado "dono" da relacao: e aqui que fica a chave estrangeira (agenda_id),
+    // obrigatoria. LAZY para nao carregar a agenda inteira a cada tarefa lida.
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "agenda_id", nullable = false)
+    private Agenda agenda;
     
     protected Tarefa() { }
     
@@ -105,6 +119,25 @@ public class Tarefa implements Comparable<Tarefa> {
      */
     public boolean isConcluida() {
         return concluida;
+    }
+    
+    /**
+     * @return a agenda a que esta tarefa pertence ({@code null} enquanto a
+     * tarefa ainda não foi adicionada a uma agenda)
+     */
+    public Agenda getAgenda() {
+        return agenda;
+    }
+
+    /**
+     * Define a agenda dona da tarefa. É restrito ao pacote de propósito: o
+     * vínculo deve ser feito por {@link Agenda#adicionarTarefa(Tarefa)}, que
+     * mantém os dois lados da relação sincronizados.
+     *
+     * @param agenda agenda dona da tarefa
+     */
+    void setAgenda(Agenda agenda) {
+        this.agenda = agenda;
     }
     
     /**
